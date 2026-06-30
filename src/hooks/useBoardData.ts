@@ -33,7 +33,24 @@ function createDefaultBoards(): Board[] {
       id: 'platform-launch',
       title: 'Platform Launch',
       columns: [
-        { id: 'todo', title: 'To Do', color: '#6366f1', tasks: [] },
+        {
+          id: 'todo',
+          title: 'To Do',
+          color: '#6366f1',
+          tasks: [
+            {
+              id: 'task-1',
+              title: 'Design landing page',
+              description: 'Create high-fidelity mockups for the main landing page.',
+              status: 'todo',
+              subtasks: [
+                { id: 'sub-1', title: 'Wireframe layout', completed: true },
+                { id: 'sub-2', title: 'Hero section design', completed: false },
+                { id: 'sub-3', title: 'CTA buttons', completed: false },
+              ],
+            },
+          ],
+        },
         { id: 'doing', title: 'In Progress', color: '#f59e0b', tasks: [] },
         { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
       ],
