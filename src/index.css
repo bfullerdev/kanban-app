@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+html {
+  @apply bg-background text-white;
+}
+
+#root {
+  @apply min-h-screen;
+}
