@@ -1,11 +1,12 @@
-import type { Column as ColumnType } from '../types';
+import type { Task, Column as ColumnType } from '../types';
 import TaskCard from './TaskCard';
 
 interface ColumnProps {
   column: ColumnType;
+  onEditTask: (task: Task) => void;
 }
 
-export default function Column({ column }: ColumnProps) {
+export default function Column({ column, onEditTask }: ColumnProps) {
   return (
     <div className="flex flex-col w-80 rounded-xl bg-[#1a1a2a] p-3">
       <div className="flex items-center gap-2 mb-3 px-1">
@@ -20,7 +21,7 @@ export default function Column({ column }: ColumnProps) {
 
       <div className="flex flex-col gap-2 overflow-y-auto">
         {column.tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <TaskCard key={task.id} task={task} onEdit={onEditTask} />
         ))}
       </div>
     </div>
