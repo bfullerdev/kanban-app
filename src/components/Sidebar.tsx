@@ -1,12 +1,13 @@
 import { LayoutDashboard, Plus, Moon, Sun, PanelLeftClose } from 'lucide-react';
+import type { Board } from '../types';
 
-const boards = [
-  { id: 'platform-launch', title: 'Platform Launch', active: true },
-  { id: 'marketing-plan', title: 'Marketing Plan', active: false },
-  { id: 'roadmap', title: 'Roadmap', active: false },
-];
+interface SidebarProps {
+  boards: Board[];
+  activeBoardId: string | null;
+  onSelectBoard: (boardId: string) => void;
+}
 
-export default function Sidebar() {
+export default function Sidebar({ boards, activeBoardId, onSelectBoard }: SidebarProps) {
   return (
     <aside className="flex flex-col w-64 h-screen bg-surface border-r border-white/5">
       <div className="flex items-center gap-2 px-4 py-6 border-b border-white/5">
@@ -22,8 +23,9 @@ export default function Sidebar() {
           {boards.map((board) => (
             <li key={board.id}>
               <button
+                onClick={() => onSelectBoard(board.id)}
                 className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
-                  board.active
+                  board.id === activeBoardId
                     ? 'bg-primary/20 text-primary font-medium'
                     : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
