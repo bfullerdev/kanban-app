@@ -107,13 +107,24 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
         subtasks: newSubtasks,
       };
 
+      const statusChanged = task.status !== status;
+
       updateBoard((prev: Board) => ({
         ...prev,
         columns: prev.columns.map((col) => {
-          if (col.id === status) {
-            return { ...col, tasks: [...col.tasks, updatedTask] };
+          if (statusChanged) {
+            if (col.id === status) {
+              return { ...col, tasks: [...col.tasks, updatedTask] };
+            }
+            if (col.id === task.status) {
+              return { ...col, tasks: col.tasks.filter((t) => t.id !== task.id) };
+            }
+            return col;
           }
-          return { ...col, tasks: col.tasks.filter((t) => t.id !== task.id) };
+          if (col.id === task.status) {
+            return { ...col, tasks: col.tasks.map((t) => (t.id === task.id ? updatedTask : t)) };
+          }
+          return col;
         }),
       }));
     } else {
