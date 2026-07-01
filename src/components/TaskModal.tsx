@@ -154,6 +154,7 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close"
               className="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-colors"
             >
               <X className="w-5 h-5" />
