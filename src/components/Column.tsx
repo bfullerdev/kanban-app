@@ -1,5 +1,4 @@
-import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/react';
 import type { Task, Column as ColumnType } from '../types';
 import TaskCard from './TaskCard';
 
@@ -9,7 +8,7 @@ interface ColumnProps {
 }
 
 export default function Column({ column, onEditTask }: ColumnProps) {
-  const { setNodeRef: setDroppableRef } = useDroppable({
+  const { ref: setDroppableRef, isDropTarget } = useDroppable({
     id: column.id,
   });
 
@@ -25,20 +24,23 @@ export default function Column({ column, onEditTask }: ColumnProps) {
         </h2>
       </div>
 
-      <SortableContext
-        items={column.tasks.map((t) => t.id)}
-        strategy={verticalListSortingStrategy}
+      <div
+        ref={setDroppableRef}
+        className={`flex flex-col gap-2 overflow-y-auto min-h-[100px] no-scrollbar transition-colors ${
+          isDropTarget ? 'bg-white/5' : ''
+        }`}
+        style={{ scrollbarWidth: 'none' }}
       >
-        <div
-          ref={setDroppableRef}
-          className="flex flex-col gap-2 overflow-y-auto min-h-[100px] no-scrollbar"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {column.tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onEdit={onEditTask} />
-          ))}
-        </div>
-      </SortableContext>
+        {column.tasks.map((task, index) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onEdit={onEditTask}
+            columnIndex={index}
+            columnId={column.id}
+          />
+        ))}
+      </div>
     </div>
   );
 }
