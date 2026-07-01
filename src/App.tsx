@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { DragDropProvider, useDragDropMonitor } from '@dnd-kit/react';
 import { PointerSensor } from '@dnd-kit/dom';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
+import TaskModal from './components/TaskModal';
 import { useBoardData } from './hooks/useBoardData';
 import type { Task, Board } from './types';
 
@@ -12,9 +14,7 @@ interface BoardContentProps {
 }
 
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
-  const handleAddTask = () => {
-    console.log('Add new task');
-  };
+  const [showModal, setShowModal] = useState(false);
 
   const handleEditTask = (task: Task) => {
     console.log('Edit task:', task.id);
@@ -58,12 +58,15 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
 
   return (
     <>
-      <BoardHeader title={activeBoard.title} onAddTask={handleAddTask} />
+      <BoardHeader title={activeBoard.title} onOpenModal={() => setShowModal(true)} />
       <div className="flex gap-4 px-6 py-4 overflow-x-auto flex-1 min-h-0">
         {activeBoard.columns.map((column) => (
           <Column key={column.id} column={column} onEditTask={handleEditTask} />
         ))}
       </div>
+      {showModal && (
+        <TaskModal board={activeBoard} updateBoard={updateBoard} onClose={() => setShowModal(false)} />
+      )}
     </>
   );
 }
