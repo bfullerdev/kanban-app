@@ -13,8 +13,8 @@ export default function Column({ column, onEditTask }: ColumnProps) {
   });
 
   return (
-    <div data-id={column.id} className="flex flex-col w-80 rounded-xl bg-[#1a1a2a] p-3 overflow-hidden">
-      <div className="flex items-center gap-2 mb-3 px-1">
+    <div data-id={column.id} className="flex flex-col w-80 flex-1 min-h-0 rounded-xl bg-[#1a1a2a] p-3 overflow-hidden">
+      <div className="flex items-center gap-2 mb-3 px-1 flex-shrink-0">
         <span
           className="w-3 h-3 rounded-full flex-shrink-0"
           style={{ backgroundColor: column.color }}
@@ -26,7 +26,7 @@ export default function Column({ column, onEditTask }: ColumnProps) {
 
       <div
         ref={setDroppableRef}
-        className={`flex flex-col gap-2 overflow-y-auto min-h-[100px] no-scrollbar transition-colors ${
+        className={`flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 no-scrollbar transition-colors ${
           isDropTarget ? 'bg-white/5' : ''
         }`}
         style={{ scrollbarWidth: 'none' }}
