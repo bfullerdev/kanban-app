@@ -14,15 +14,16 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    ...(isDragging ? { width: '100%', maxWidth: '100%' } : {}),
   };
 
   const completedCount = task.subtasks.filter((s) => s.completed).length;
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <div ref={setNodeRef} style={style} {...attributes} className="overflow-hidden">
       <button
         onClick={() => onEdit(task)}
         className="w-full text-left p-3 rounded-lg bg-surface border border-white/5 shadow-sm hover:border-white/10 hover:shadow-md transition-all cursor-pointer"

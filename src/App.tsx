@@ -1,4 +1,4 @@
-import { DndContext, closestCorners, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
@@ -16,11 +16,11 @@ function App() {
     })
   );
 
-  const handleDragEnd = ({ active, over }: { active: { id: string }; over: { id: string } | null }) => {
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
     if (!activeBoard || !over) return;
 
-    const taskId = active.id;
-    const overId = over.id;
+    const taskId = active.id as string;
+    const overId = over.id as string;
 
     if (taskId === overId) return;
 
