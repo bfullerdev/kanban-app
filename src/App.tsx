@@ -32,6 +32,8 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       );
       if (!sourceColumn) return;
 
+      if (targetColumnId === sourceColumn.id) return;
+
       const task = sourceColumn.tasks.find((t) => t.id === taskId);
       if (!task) return;
 
