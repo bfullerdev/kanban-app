@@ -37,6 +37,8 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       const task = sourceColumn.tasks.find((t) => t.id === taskId);
       if (!task) return;
 
+      const updatedTask = { ...task, status: targetColumnId as 'todo' | 'doing' | 'done' };
+
       updateBoard((prev: Board) => ({
         ...prev,
         columns: prev.columns.map((col) => {
@@ -45,7 +47,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
             if (existingIndex !== -1) {
               return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
             }
-            return { ...col, tasks: [...col.tasks, task] };
+            return { ...col, tasks: [...col.tasks, updatedTask] };
           }
           if (col.id === sourceColumn.id) {
             return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };

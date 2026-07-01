@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import './__mocks__/dnd.tsx';
 import Column from './Column';
-import type { Column as ColumnType } from '../../types';
+import type { Column as ColumnType } from '../../types.ts';
 
 beforeEach(() => {
   vi.resetModules();

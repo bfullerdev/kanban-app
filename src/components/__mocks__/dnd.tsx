@@ -1,8 +1,24 @@
 import { vi } from 'vitest';
 
+let onDragEndCallback: ((...args: any[]) => void) | null = null;
+
+const mockUseDragDropMonitor = vi.fn((callbacks: any) => {
+  onDragEndCallback = callbacks?.onDragEnd ?? null;
+}) as unknown as {
+  triggerDragEnd: (operation: any) => void;
+  mockClear: () => void;
+  mock: { calls: any[][] };
+};
+
+mockUseDragDropMonitor.triggerDragEnd = (operation: any) => {
+  if (onDragEndCallback) {
+    onDragEndCallback({ operation });
+  }
+};
+
 vi.mock('@dnd-kit/react', () => ({
   DragDropProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="dnd-provider">{children}</div>,
-  useDragDropMonitor: vi.fn(),
+  useDragDropMonitor: mockUseDragDropMonitor,
   useDroppable: vi.fn(() => ({ ref: vi.fn(), isDropTarget: false })),
 }));
 
@@ -17,3 +33,5 @@ vi.mock('@dnd-kit/react/sortable', () => ({
 vi.mock('@dnd-kit/dom', () => ({
   PointerSensor: {},
 }));
+
+export { mockUseDragDropMonitor };

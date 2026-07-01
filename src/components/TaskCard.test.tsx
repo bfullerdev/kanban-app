@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import './__mocks__/dnd.tsx';
 import TaskCard from './TaskCard';
-import type { Task } from '../../types';
+import type { Task } from '../../types.ts';
 
 beforeEach(() => {
   vi.resetModules();

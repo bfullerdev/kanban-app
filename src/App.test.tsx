@@ -1,10 +1,12 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import './components/__mocks__/dnd.tsx';
+import { mockUseDragDropMonitor } from './components/__mocks__/dnd.tsx';
 import App from './App';
 
 beforeEach(() => {
   localStorage.clear();
+  mockUseDragDropMonitor.mockClear();
 });
 
 describe('App', () => {
@@ -104,5 +106,64 @@ describe('App', () => {
 
     expect(screen.queryByText('Edit Task')).not.toBeInTheDocument();
     expect(screen.getByText('Updated task name')).toBeInTheDocument();
+  });
+
+  it('drags a task to another column, edits name/description, and persists changes', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Verify task starts in "To Do" column
+    const todoColumn = document.querySelector('[data-id="todo"]') as HTMLElement;
+    expect(within(todoColumn).getByText('Design landing page')).toBeInTheDocument();
+
+    const doingColumn = document.querySelector('[data-id="doing"]') as HTMLElement;
+    expect(within(doingColumn).queryByText('Design landing page')).not.toBeInTheDocument();
+
+    // Simulate dragging "Design landing page" from "todo" to "doing"
+    await act(async () => {
+      mockUseDragDropMonitor.triggerDragEnd({
+        source: { id: 'task-1' },
+        target: { id: 'doing' },
+      });
+    });
+
+    // Re-query after state update
+    const updatedDoingColumn = document.querySelector('[data-id="doing"]') as HTMLElement;
+    const updatedTodoColumn = document.querySelector('[data-id="todo"]') as HTMLElement;
+
+    // Verify task moved to "In Progress" column
+    expect(within(updatedDoingColumn).getByText('Design landing page')).toBeInTheDocument();
+    expect(within(updatedTodoColumn).queryByText('Design landing page')).not.toBeInTheDocument();
+
+    // Now edit the task: change name and description
+    await user.click(screen.getByText('Design landing page'));
+    expect(screen.getByText('Edit Task')).toBeInTheDocument();
+
+    const titleInput = screen.getByDisplayValue('Design landing page');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Redesigned landing page');
+
+    const descInput = screen.getByDisplayValue('Create high-fidelity mockups for the main landing page.');
+    await user.clear(descInput);
+    await user.type(descInput, 'Final polished version with new branding.');
+
+    await user.click(screen.getByText('Save Changes'));
+
+    // Verify modal is closed
+    expect(screen.queryByText('Edit Task')).not.toBeInTheDocument();
+
+    // Verify task is still in "In Progress" with updated name
+    expect(within(updatedDoingColumn).getByText('Redesigned landing page')).toBeInTheDocument();
+
+    // Verify changes are persisted to localStorage with correct column and status
+    const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
+    const board = stored.find((b: { id: string }) => b.id === 'platform-launch');
+    const doingCol = board.columns.find((c: { id: string }) => c.id === 'doing');
+    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
+
+    expect(doingCol.tasks[0].title).toBe('Redesigned landing page');
+    expect(doingCol.tasks[0].description).toBe('Final polished version with new branding.');
+    expect(doingCol.tasks[0].status).toBe('doing');
+    expect(todoCol.tasks.length).toBe(0);
   });
 });
