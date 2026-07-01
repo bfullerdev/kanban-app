@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Plus, Check } from 'lucide-react';
 import type { Board, Task, Subtask } from '../types';
 
@@ -31,16 +31,6 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
       ? (task.status as 'todo' | 'doing' | 'done')
       : ((board.columns[0]?.id as 'todo' | 'doing' | 'done') || 'todo')
   );
-
-  useEffect(() => {
-    if (isEdit) {
-      setTitle(task.title);
-      setDescription(task.description);
-      setSubtaskInputs(task.subtasks.map((s) => ({ id: s.id, title: s.title })));
-      setSubtasks(task.subtasks);
-      setStatus(task.status as 'todo' | 'doing' | 'done');
-    }
-  }, [task, isEdit]);
 
   const addSubtaskInput = () => {
     setSubtaskInputs([...subtaskInputs, { id: crypto.randomUUID(), title: '' }]);
