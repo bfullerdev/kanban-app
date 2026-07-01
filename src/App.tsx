@@ -14,10 +14,10 @@ interface BoardContentProps {
 }
 
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
-  const [showModal, setShowModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
 
   const handleEditTask = (task: Task) => {
-    console.log('Edit task:', task.id);
+    setEditingTask(task);
   };
 
   useDragDropMonitor({
@@ -58,14 +58,19 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
 
   return (
     <>
-      <BoardHeader title={activeBoard.title} onOpenModal={() => setShowModal(true)} />
+      <BoardHeader title={activeBoard.title} onOpenModal={() => setEditingTask(null)} />
       <div className="flex gap-4 px-6 py-4 overflow-x-auto flex-1 min-h-0">
         {activeBoard.columns.map((column) => (
           <Column key={column.id} column={column} onEditTask={handleEditTask} />
         ))}
       </div>
-      {showModal && (
-        <TaskModal board={activeBoard} updateBoard={updateBoard} onClose={() => setShowModal(false)} />
+      {editingTask !== undefined && (
+        <TaskModal
+          board={activeBoard}
+          updateBoard={updateBoard}
+          onClose={() => setEditingTask(undefined)}
+          task={editingTask ?? undefined}
+        />
       )}
     </>
   );
