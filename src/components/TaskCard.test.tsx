@@ -1,9 +1,9 @@
 import { vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import './__mocks__/dnd.tsx';
+import './__mocks__/dnd';
 import TaskCard from './TaskCard';
-import type { Task } from '../../types.ts';
+import type { Task } from '../../types';
 
 beforeEach(() => {
   vi.resetModules();

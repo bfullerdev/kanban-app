@@ -1,9 +1,9 @@
 import { vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import './__mocks__/dnd.tsx';
+import './__mocks__/dnd';
 import Column from './Column';
-import type { Column as ColumnType } from '../../types.ts';
+import type { Column as ColumnType } from '../../types';
 
 beforeEach(() => {
   vi.resetModules();

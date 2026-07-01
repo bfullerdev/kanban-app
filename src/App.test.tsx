@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import './components/__mocks__/dnd.tsx';
-import { mockUseDragDropMonitor } from './components/__mocks__/dnd.tsx';
+import './components/__mocks__/dnd';
+import { mockUseDragDropMonitor } from './components/__mocks__/dnd';
 import App from './App';
 
 beforeEach(() => {
