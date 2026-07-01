@@ -21,27 +21,29 @@ function BoardContent() {
     onDragEnd: ({ operation }) => {
       if (!operation.source || !operation.target || !activeBoard) return;
 
-      const sourceId = operation.source.id as string;
-      const targetId = operation.target.id as string;
+      const taskId = operation.source.id as string;
+      const targetColumnId = operation.target.id as string;
 
-      const sourceColumn = activeBoard.columns.find((c) => c.id === sourceId);
+      const sourceColumn = activeBoard.columns.find((c) =>
+        c.tasks.some((t) => t.id === taskId)
+      );
       if (!sourceColumn) return;
 
-      const task = sourceColumn.tasks.find((t) => t.id === sourceId);
+      const task = sourceColumn.tasks.find((t) => t.id === taskId);
       if (!task) return;
 
       updateBoard((prev: Board) => ({
         ...prev,
         columns: prev.columns.map((col) => {
-          if (col.id === targetId) {
-            const existingIndex = col.tasks.findIndex((t) => t.id === sourceId);
+          if (col.id === targetColumnId) {
+            const existingIndex = col.tasks.findIndex((t) => t.id === taskId);
             if (existingIndex !== -1) {
-              return { ...col, tasks: col.tasks.filter((t) => t.id !== sourceId) };
+              return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
             }
             return { ...col, tasks: [...col.tasks, task] };
           }
-          if (col.id === sourceId) {
-            return { ...col, tasks: col.tasks.filter((t) => t.id !== sourceId) };
+          if (col.id === sourceColumn.id) {
+            return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
           }
           return col;
         }),

@@ -14,6 +14,7 @@ export default function TaskCard({ task, onEdit, columnIndex, columnId }: TaskCa
     id: task.id,
     index: columnIndex,
     group: columnId,
+    disabled: { droppable: true },
   });
 
   const completedCount = task.subtasks.filter((s) => s.completed).length;
