@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { DragDropProvider, useDragDropMonitor } from '@dnd-kit/react';
 import { PointerSensor } from '@dnd-kit/dom';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
+import TaskModal from './components/TaskModal';
 import { useBoardData } from './hooks/useBoardData';
 import type { Task, Board } from './types';
 
@@ -12,12 +14,10 @@ interface BoardContentProps {
 }
 
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
-  const handleAddTask = () => {
-    console.log('Add new task');
-  };
+  const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
 
   const handleEditTask = (task: Task) => {
-    console.log('Edit task:', task.id);
+    setEditingTask(task);
   };
 
   useDragDropMonitor({
@@ -37,6 +37,8 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       const task = sourceColumn.tasks.find((t) => t.id === taskId);
       if (!task) return;
 
+      const updatedTask = { ...task, status: targetColumnId as 'todo' | 'doing' | 'done' };
+
       updateBoard((prev: Board) => ({
         ...prev,
         columns: prev.columns.map((col) => {
@@ -45,7 +47,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
             if (existingIndex !== -1) {
               return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
             }
-            return { ...col, tasks: [...col.tasks, task] };
+            return { ...col, tasks: [...col.tasks, updatedTask] };
           }
           if (col.id === sourceColumn.id) {
             return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
@@ -58,12 +60,20 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
 
   return (
     <>
-      <BoardHeader title={activeBoard.title} onAddTask={handleAddTask} />
+      <BoardHeader title={activeBoard.title} onOpenModal={() => setEditingTask(null)} />
       <div className="flex gap-4 px-6 py-4 overflow-x-auto flex-1 min-h-0">
         {activeBoard.columns.map((column) => (
           <Column key={column.id} column={column} onEditTask={handleEditTask} />
         ))}
       </div>
+      {editingTask !== undefined && (
+        <TaskModal
+          board={activeBoard}
+          updateBoard={updateBoard}
+          onClose={() => setEditingTask(undefined)}
+          task={editingTask ?? undefined}
+        />
+      )}
     </>
   );
 }
