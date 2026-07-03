@@ -13,7 +13,7 @@ export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
     id: task.id,
     index,
   });
-  const { draggable: _draggable, ...sortableProps } = sortable;
+  const { draggable: _draggable, register: _register, unregister: _unregister, destroy: _destroy, ...sortableProps } = sortable;
 
   const completedCount = task.subtasks.filter((s) => s.completed).length;
 

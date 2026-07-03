@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Sidebar from './Sidebar';
-import type { Board } from '../../types';
+import type { Board } from '../types';
 
 beforeEach(() => {
   localStorage.clear();

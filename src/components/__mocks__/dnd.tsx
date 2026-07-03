@@ -17,6 +17,9 @@ const mockUseDroppable = vi.fn(() => ({
 const mockUseSortable = vi.fn(() => ({
   sortable: {
     draggable: {},
+    register: () => () => {},
+    unregister: () => {},
+    destroy: () => {},
   },
   isDragging: false,
   handleRef: () => null,
