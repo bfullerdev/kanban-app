@@ -359,9 +359,18 @@ describe('TaskModal - Edit', () => {
 
   it('moves task to new column on status change', async () => {
     const user = userEvent.setup();
+    const boardWithTask: Board = {
+      ...mockBoard,
+      columns: [
+        { ...mockBoard.columns[0], tasks: [mockTask] },
+        { ...mockBoard.columns[1], tasks: [] },
+        { ...mockBoard.columns[2], tasks: [] },
+      ],
+    };
+
     render(
       <TaskModal
-        board={mockBoard}
+        board={boardWithTask}
         updateBoard={mockUpdateBoard}
         onClose={mockOnClose}
         task={mockTask}
@@ -375,7 +384,7 @@ describe('TaskModal - Edit', () => {
 
     expect(mockUpdateBoard).toHaveBeenCalled();
     const callArg = mockUpdateBoard.mock.calls[0][0];
-    const result = callArg(mockBoard);
+    const result = callArg(boardWithTask);
     expect(result.columns[0].tasks).toHaveLength(0);
     expect(result.columns[1].tasks).toHaveLength(1);
   });

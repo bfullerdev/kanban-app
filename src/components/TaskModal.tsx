@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X, Plus, Check } from 'lucide-react';
 import type { Board, Task, Subtask } from '../types';
+import { moveTask, updateTaskInBoard } from '../utils/boardUpdater';
+import { useSubtasks } from '../hooks/useSubtasks';
 
 interface TaskModalProps {
   board: Board;
@@ -9,129 +11,56 @@ interface TaskModalProps {
   task?: Task;
 }
 
-interface SubtaskInput {
-  id: string;
-  title: string;
-}
-
 export default function TaskModal({ board, updateBoard, onClose, task }: TaskModalProps) {
   const isEdit = !!task;
 
   const [title, setTitle] = useState(isEdit ? task.title : '');
   const [description, setDescription] = useState(isEdit ? task.description : '');
-  const [subtaskInputs, setSubtaskInputs] = useState<SubtaskInput[]>(() => {
-    if (isEdit && task.subtasks.length > 0) {
-      return task.subtasks.map((s) => ({ id: s.id, title: s.title }));
-    }
-    return [{ id: crypto.randomUUID(), title: '' }];
-  });
-  const [subtasks, setSubtasks] = useState<Subtask[]>(isEdit ? task.subtasks : []);
   const [status, setStatus] = useState<'todo' | 'doing' | 'done'>(
     isEdit
       ? (task.status as 'todo' | 'doing' | 'done')
       : ((board.columns[0]?.id as 'todo' | 'doing' | 'done') || 'todo')
   );
 
-  const addSubtaskInput = () => {
-    setSubtaskInputs([...subtaskInputs, { id: crypto.randomUUID(), title: '' }]);
-  };
-
-  const removeSubtaskInput = (id: string) => {
-    setSubtaskInputs(subtaskInputs.filter((s) => s.id !== id));
-  };
-
-  const updateSubtaskInput = (id: string, value: string) => {
-    setSubtaskInputs(subtaskInputs.map((s) => (s.id === id ? { ...s, title: value } : s)));
-  };
-
-  const toggleSubtask = (subtaskId: string) => {
-    setSubtasks((prev) =>
-      prev.map((s) => (s.id === subtaskId ? { ...s, completed: !s.completed } : s))
-    );
-
-    if (isEdit && task) {
-      updateBoard((prev: Board) => ({
-        ...prev,
-        columns: prev.columns.map((col) => {
-          const colTask = col.tasks.find((t) => t.id === task.id);
-          if (!colTask) return col;
-          return {
-            ...col,
-            tasks: col.tasks.map((t) =>
-              t.id === task.id
-                ? {
-                    ...t,
-                    subtasks: t.subtasks.map((s) =>
-                      s.id === subtaskId ? { ...s, completed: !s.completed } : s
-                    ),
-                  }
-                : t
-            ),
-          };
-        }),
-      }));
-    }
-  };
+  const {
+    inputs: subtaskInputs,
+    subtasks,
+    addSubtaskInput,
+    removeSubtaskInput,
+    updateSubtaskInput,
+    toggleSubtask,
+    getSubtasksForSubmit,
+    newSubtaskInputs,
+  } = useSubtasks(task?.subtasks ?? [], { isEdit, updateBoard, task: task ?? undefined });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
     if (isEdit && task) {
-      const newSubtasks = subtaskInputs
-        .filter((s) => s.title.trim())
-        .map((input) => {
-          const existing = subtasks.find((s) => s.id === input.id);
-          return existing ?? {
-            id: crypto.randomUUID(),
-            title: input.title.trim(),
-            completed: false,
-          };
-        });
-
       const updatedTask: Task = {
         ...task,
         title: title.trim(),
         description: description.trim(),
         status,
-        subtasks: newSubtasks,
+        subtasks: getSubtasksForSubmit(),
       };
 
       const statusChanged = task.status !== status;
 
-      updateBoard((prev: Board) => ({
-        ...prev,
-        columns: prev.columns.map((col) => {
-          if (statusChanged) {
-            if (col.id === status) {
-              return { ...col, tasks: [...col.tasks, updatedTask] };
-            }
-            if (col.id === task.status) {
-              return { ...col, tasks: col.tasks.filter((t) => t.id !== task.id) };
-            }
-            return col;
-          }
-          if (col.id === task.status) {
-            return { ...col, tasks: col.tasks.map((t) => (t.id === task.id ? updatedTask : t)) };
-          }
-          return col;
-        }),
-      }));
+      updateBoard((prev: Board) => {
+        if (statusChanged) {
+          return moveTask(prev, task.id, status, updatedTask);
+        }
+        return updateTaskInBoard(prev, updatedTask);
+      });
     } else {
-      const newSubtasks = subtaskInputs
-        .filter((s) => s.title.trim())
-        .map((s) => ({
-          id: crypto.randomUUID(),
-          title: s.title.trim(),
-          completed: false,
-        }));
-
       const newTask: Task = {
         id: crypto.randomUUID(),
         title: title.trim(),
         description: description.trim(),
         status,
-        subtasks: newSubtasks,
+        subtasks: getSubtasksForSubmit(),
       };
 
       updateBoard((prev: Board) => ({
@@ -221,28 +150,26 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
                       </span>
                     </label>
                   ))}
-                  {subtaskInputs.filter((input) => !subtasks.find((s) => s.id === input.id)).length > 0 && (
+                  {newSubtaskInputs.length > 0 && (
                     <div className="space-y-2 pt-2 border-t border-white/5">
-                      {subtaskInputs
-                        .filter((input) => !subtasks.find((s) => s.id === input.id))
-                        .map((input) => (
-                          <div key={input.id} className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={input.title}
-                              onChange={(e) => updateSubtaskInput(input.id, e.target.value)}
-                              placeholder="New subtask"
-                              className="flex-1 px-3 py-2 bg-background border border-white/10 rounded-lg text-sm text-white placeholder-white/30 focus:outline-none focus:border-primary/50 transition-colors"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeSubtaskInput(input.id)}
-                              className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-white/5 transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
+                      {newSubtaskInputs.map((input) => (
+                        <div key={input.id} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={input.title}
+                            onChange={(e) => updateSubtaskInput(input.id, e.target.value)}
+                            placeholder="New subtask"
+                            className="flex-1 px-3 py-2 bg-background border border-white/10 rounded-lg text-sm text-white placeholder-white/30 focus:outline-none focus:border-primary/50 transition-colors"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSubtaskInput(input.id)}
+                            className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-white/5 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

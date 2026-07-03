@@ -7,6 +7,7 @@ import App from './App';
 beforeEach(() => {
   localStorage.clear();
   mockUseDragDropMonitor.mockClear();
+  mockUseDragDropMonitor.reset();
 });
 
 describe('App', () => {
