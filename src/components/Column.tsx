@@ -10,6 +10,7 @@ interface ColumnProps {
 export default function Column({ column, onEditTask }: ColumnProps) {
   const { ref: setDroppableRef, isDropTarget } = useDroppable({
     id: column.id,
+    group: column.id,
   });
 
   return (
@@ -36,8 +37,7 @@ export default function Column({ column, onEditTask }: ColumnProps) {
             key={task.id}
             task={task}
             onEdit={onEditTask}
-            columnIndex={index}
-            columnId={column.id}
+            index={index}
           />
         ))}
       </div>

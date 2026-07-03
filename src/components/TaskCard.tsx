@@ -5,35 +5,36 @@ import type { Task } from '../types';
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
-  columnIndex: number;
-  columnId: string;
+  index: number;
 }
 
-export default function TaskCard({ task, onEdit, columnIndex, columnId }: TaskCardProps) {
-  const { handleRef, ref, isDragSource } = useSortable({
+export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
+  const { sortable, isDragging, handleRef, ref } = useSortable({
     id: task.id,
-    index: columnIndex,
-    group: columnId,
-    disabled: { droppable: true },
+    index,
   });
+  const { draggable: _draggable, ...sortableProps } = sortable;
 
   const completedCount = task.subtasks.filter((s) => s.completed).length;
 
   return (
     <div
+      {...sortableProps}
       ref={ref}
-      className={`transition-all duration-200 ${
-        isDragSource ? 'opacity-30' : 'opacity-100'
-      }`}
+      data-id={task.id}
+      className={`transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
     >
       <button
-        onClick={() => onEdit(task)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit(task);
+        }}
         className="w-full text-left p-3 rounded-lg bg-surface border border-white/5 shadow-sm hover:border-white/10 hover:shadow-md transition-all cursor-pointer"
+        ref={handleRef}
       >
         <div className="flex items-start gap-2">
           <div
             className="cursor-grab active:cursor-grabbing mt-0.5 select-none"
-            ref={handleRef}
           >
             <GripVertical className="w-4 h-4 text-white/30 hover:text-white/60" />
           </div>

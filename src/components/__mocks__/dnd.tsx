@@ -1,42 +1,62 @@
 import { vi } from 'vitest';
 
-let onDragEndCallback: ((...args: any[]) => void) | null = null;
+const mockUseDraggable = vi.fn(() => ({
+  draggable: {},
+  isDragging: false,
+  isDropping: false,
+  isDragSource: false,
+  handleRef: () => null,
+  ref: () => null,
+}));
 
-const mockUseDragDropMonitor = vi.fn((callbacks: any) => {
-  onDragEndCallback = callbacks?.onDragEnd ?? null;
-}) as unknown as {
-  triggerDragEnd: (operation: any) => void;
-  mockClear: () => void;
-  mock: { calls: any[][] };
-  reset: () => void;
+const mockUseDroppable = vi.fn(() => ({
+  ref: () => null,
+  isDropTarget: false,
+}));
+
+const mockUseSortable = vi.fn(() => ({
+  sortable: {
+    draggable: {},
+  },
+  isDragging: false,
+  handleRef: () => null,
+  ref: () => null,
+}));
+
+const mockUseDragDropMonitor = {
+  mock: vi.fn(),
+  triggerDragEnd: vi.fn(),
+  triggerDragOver: vi.fn(),
+  clear: vi.fn(),
 };
 
-mockUseDragDropMonitor.triggerDragEnd = (operation: any) => {
-  if (onDragEndCallback) {
-    onDragEndCallback({ operation });
-  }
+const mockCallbacks: any = {
+  onDragEnd: null,
+  onDragOver: null,
 };
 
-mockUseDragDropMonitor.reset = () => {
-  onDragEndCallback = null;
-};
+const mockDragDropProvider = vi.fn(({ children, onDragOver, onDragEnd }: any) => {
+  if (onDragOver) mockCallbacks.onDragOver = onDragOver;
+  if (onDragEnd) mockCallbacks.onDragEnd = onDragEnd;
+  return (
+    <div data-testid="drag-drop-provider" onDragOver={onDragOver} onDragEnd={onDragEnd}>
+      {children}
+    </div>
+  );
+});
 
 vi.mock('@dnd-kit/react', () => ({
-  DragDropProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="dnd-provider">{children}</div>,
-  useDragDropMonitor: mockUseDragDropMonitor,
-  useDroppable: vi.fn(() => ({ ref: vi.fn(), isDropTarget: false })),
+  useDraggable: mockUseDraggable,
+  useDroppable: mockUseDroppable,
+  DragDropProvider: mockDragDropProvider,
 }));
 
 vi.mock('@dnd-kit/react/sortable', () => ({
-  useSortable: vi.fn(() => ({
-    handleRef: vi.fn(),
-    ref: vi.fn(),
-    isDragSource: false,
-  })),
+  useSortable: mockUseSortable,
 }));
 
 vi.mock('@dnd-kit/dom', () => ({
-  PointerSensor: {},
+  PointerSensor: vi.fn(),
 }));
 
-export { mockUseDragDropMonitor };
+export { mockUseDraggable, mockUseDroppable, mockUseSortable, mockUseDragDropMonitor, mockDragDropProvider, mockCallbacks };

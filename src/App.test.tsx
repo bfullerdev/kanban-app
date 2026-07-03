@@ -1,13 +1,13 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import './components/__mocks__/dnd';
-import { mockUseDragDropMonitor } from './components/__mocks__/dnd';
+import { mockCallbacks } from './components/__mocks__/dnd';
 import App from './App';
 
 beforeEach(() => {
   localStorage.clear();
-  mockUseDragDropMonitor.mockClear();
-  mockUseDragDropMonitor.reset();
+  mockCallbacks.onDragEnd = null;
+  mockCallbacks.onDragOver = null;
 });
 
 describe('App', () => {
@@ -122,9 +122,11 @@ describe('App', () => {
 
     // Simulate dragging "Design landing page" from "todo" to "doing"
     await act(async () => {
-      mockUseDragDropMonitor.triggerDragEnd({
-        source: { id: 'task-1' },
-        target: { id: 'doing' },
+      mockCallbacks.onDragOver?.({
+        operation: {
+          source: { id: 'task-1', group: 'todo', index: 0 },
+          target: { id: 'doing', group: 'doing', index: undefined },
+        },
       });
     });
 

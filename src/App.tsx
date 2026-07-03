@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { DragDropProvider, useDragDropMonitor } from '@dnd-kit/react';
+import { useRef, useState } from 'react';
+import { DragDropProvider } from '@dnd-kit/react';
 import { PointerSensor } from '@dnd-kit/dom';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
 import TaskModal from './components/TaskModal';
 import { useBoardData } from './hooks/useBoardData';
-import { moveTask } from './utils/boardUpdater';
+import { moveTask, reorderTask } from './utils/boardUpdater';
 import type { Task, Board } from './types';
 
 interface BoardContentProps {
@@ -16,39 +16,55 @@ interface BoardContentProps {
 
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
+  const previousBoard = useRef(activeBoard);
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
   };
 
-  useDragDropMonitor({
-    onDragEnd: ({ operation }) => {
-      if (!operation.source || !operation.target || !activeBoard) return;
-
-      const taskId = operation.source.id as string;
-      const targetColumnId = operation.target.id as string;
-
-      updateBoard((prev: Board) => moveTask(prev, taskId, targetColumnId));
-    },
-  });
-
   return (
-    <>
-      <BoardHeader title={activeBoard.title} onOpenModal={() => setEditingTask(null)} />
-      <div className="flex gap-4 px-6 py-4 overflow-x-auto flex-1 min-h-0">
-        {activeBoard.columns.map((column) => (
-          <Column key={column.id} column={column} onEditTask={handleEditTask} />
-        ))}
-      </div>
-      {editingTask !== undefined && (
-        <TaskModal
-          board={activeBoard}
-          updateBoard={updateBoard}
-          onClose={() => setEditingTask(undefined)}
-          task={editingTask ?? undefined}
-        />
-      )}
-    </>
+    <DragDropProvider
+      sensors={[PointerSensor]}
+      onDragOver={(event) => {
+        const { source, target } = event.operation;
+        if (!source || !target || !activeBoard) return;
+
+        const isTargetSortable = target.index !== undefined;
+        const targetGroup = isTargetSortable ? target.group : target.id;
+        const targetIndex = isTargetSortable ? target.index : undefined;
+
+        if (isTargetSortable && source.group && source.group === targetGroup && source.index !== targetIndex) {
+          updateBoard((prev: Board) => reorderTask(prev, source.id as string, targetGroup as string, targetIndex as number));
+        } else if (targetGroup && targetGroup !== source.group) {
+          updateBoard((prev: Board) => moveTask(prev, source.id as string, targetGroup, targetIndex));
+        }
+      }}
+      onDragEnd={(event) => {
+        if (event.canceled || event.operation?.canceled) {
+          if (activeBoard) {
+            updateBoard(previousBoard.current);
+          }
+          return;
+        }
+      }}
+    >
+      <>
+        <BoardHeader title={activeBoard.title} onOpenModal={() => setEditingTask(null)} />
+        <div className="flex gap-4 px-6 py-4 overflow-x-auto flex-1 min-h-0">
+          {activeBoard.columns.map((column) => (
+            <Column key={column.id} column={column} onEditTask={handleEditTask} />
+          ))}
+        </div>
+        {editingTask !== undefined && (
+          <TaskModal
+            board={activeBoard}
+            updateBoard={updateBoard}
+            onClose={() => setEditingTask(undefined)}
+            task={editingTask ?? undefined}
+          />
+        )}
+      </>
+    </DragDropProvider>
   );
 }
 
@@ -63,15 +79,13 @@ function App() {
         onSelectBoard={selectBoard}
       />
       <main className="flex-1 flex flex-col">
-        <DragDropProvider sensors={[PointerSensor]}>
-          {activeBoard ? (
-            <BoardContent activeBoard={activeBoard} updateBoard={updateBoard} />
-          ) : (
-            <div className="flex items-center justify-center flex-1">
-              <p className="text-white/40">Select a board to get started</p>
-            </div>
-          )}
-        </DragDropProvider>
+        {activeBoard ? (
+          <BoardContent activeBoard={activeBoard} updateBoard={updateBoard} />
+        ) : (
+          <div className="flex items-center justify-center flex-1">
+            <p className="text-white/40">Select a board to get started</p>
+          </div>
+        )}
       </main>
     </div>
   );
