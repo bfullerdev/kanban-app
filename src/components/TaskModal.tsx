@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Plus, Check } from 'lucide-react';
 import type { Board, Task, Subtask } from '../types';
+import { moveTask, updateTaskInBoard } from '../utils/boardUpdater';
 
 interface TaskModalProps {
   board: Board;
@@ -99,24 +100,12 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
 
       const statusChanged = task.status !== status;
 
-      updateBoard((prev: Board) => ({
-        ...prev,
-        columns: prev.columns.map((col) => {
-          if (statusChanged) {
-            if (col.id === status) {
-              return { ...col, tasks: [...col.tasks, updatedTask] };
-            }
-            if (col.id === task.status) {
-              return { ...col, tasks: col.tasks.filter((t) => t.id !== task.id) };
-            }
-            return col;
-          }
-          if (col.id === task.status) {
-            return { ...col, tasks: col.tasks.map((t) => (t.id === task.id ? updatedTask : t)) };
-          }
-          return col;
-        }),
-      }));
+      updateBoard((prev: Board) => {
+        if (statusChanged) {
+          return moveTask(prev, task.id, status, updatedTask);
+        }
+        return updateTaskInBoard(prev, updatedTask);
+      });
     } else {
       const newSubtasks = subtaskInputs
         .filter((s) => s.title.trim())

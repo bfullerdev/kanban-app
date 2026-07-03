@@ -8,12 +8,17 @@ const mockUseDragDropMonitor = vi.fn((callbacks: any) => {
   triggerDragEnd: (operation: any) => void;
   mockClear: () => void;
   mock: { calls: any[][] };
+  reset: () => void;
 };
 
 mockUseDragDropMonitor.triggerDragEnd = (operation: any) => {
   if (onDragEndCallback) {
     onDragEndCallback({ operation });
   }
+};
+
+mockUseDragDropMonitor.reset = () => {
+  onDragEndCallback = null;
 };
 
 vi.mock('@dnd-kit/react', () => ({

@@ -6,6 +6,7 @@ import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
 import TaskModal from './components/TaskModal';
 import { useBoardData } from './hooks/useBoardData';
+import { moveTask } from './utils/boardUpdater';
 import type { Task, Board } from './types';
 
 interface BoardContentProps {
@@ -27,34 +28,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       const taskId = operation.source.id as string;
       const targetColumnId = operation.target.id as string;
 
-      const sourceColumn = activeBoard.columns.find((c) =>
-        c.tasks.some((t) => t.id === taskId)
-      );
-      if (!sourceColumn) return;
-
-      if (targetColumnId === sourceColumn.id) return;
-
-      const task = sourceColumn.tasks.find((t) => t.id === taskId);
-      if (!task) return;
-
-      const updatedTask = { ...task, status: targetColumnId as 'todo' | 'doing' | 'done' };
-
-      updateBoard((prev: Board) => ({
-        ...prev,
-        columns: prev.columns.map((col) => {
-          if (col.id === targetColumnId) {
-            const existingIndex = col.tasks.findIndex((t) => t.id === taskId);
-            if (existingIndex !== -1) {
-              return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
-            }
-            return { ...col, tasks: [...col.tasks, updatedTask] };
-          }
-          if (col.id === sourceColumn.id) {
-            return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
-          }
-          return col;
-        }),
-      }));
+      updateBoard((prev: Board) => moveTask(prev, taskId, targetColumnId));
     },
   });
 
