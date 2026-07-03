@@ -1,6 +1,7 @@
 import { useDroppable } from '@dnd-kit/react';
 import type { Task, Column as ColumnType } from '../types';
 import TaskCard from './TaskCard';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 interface ColumnProps {
   column: ColumnType;
@@ -32,14 +33,16 @@ export default function Column({ column, onEditTask }: ColumnProps) {
         }`}
         style={{ scrollbarWidth: 'none' }}
       >
-        {column.tasks.map((task, index) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onEdit={onEditTask}
-            index={index}
-          />
-        ))}
+        <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          {column.tasks.map((task, index) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              onEdit={onEditTask}
+              index={index}
+            />
+          ))}
+        </SortableContext>
       </div>
     </div>
   );

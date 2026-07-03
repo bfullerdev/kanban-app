@@ -26,6 +26,16 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
     <DragDropProvider
       sensors={[PointerSensor]}
       onDragOver={(event) => {
+        if (event.active?.id === undefined) return;
+      }}
+      onDragEnd={(event) => {
+        if (event.canceled || event.operation?.canceled) {
+          if (activeBoard) {
+            updateBoard(previousBoard.current);
+          }
+          return;
+        }
+
         const { source, target } = event.operation;
         if (!source || !target || !activeBoard) return;
 
@@ -38,14 +48,8 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         } else if (targetGroup && targetGroup !== source.group) {
           updateBoard((prev: Board) => moveTask(prev, source.id as string, targetGroup, targetIndex));
         }
-      }}
-      onDragEnd={(event) => {
-        if (event.canceled || event.operation?.canceled) {
-          if (activeBoard) {
-            updateBoard(previousBoard.current);
-          }
-          return;
-        }
+        
+        previousBoard.current = activeBoard;
       }}
     >
       <>
