@@ -48,18 +48,50 @@ const mockDragDropProvider = vi.fn(({ children, onDragOver, onDragEnd }: any) =>
   );
 });
 
-vi.mock('@dnd-kit/react', () => ({
-  useDraggable: mockUseDraggable,
+vi.mock('@dnd-kit/core', () => ({
   useDroppable: mockUseDroppable,
-  DragDropProvider: mockDragDropProvider,
+  DndContext: ({ children, onDragOver, onDragEnd, sensors }: any) => {
+    const triggerDragEnd = (event: any) => {
+      if (onDragEnd) {
+        onDragEnd(event);
+      }
+    };
+    const triggerDragOver = (event: any) => {
+      if (onDragOver) {
+        onDragOver(event);
+      }
+    };
+    mockCallbacks.triggerDragEnd = triggerDragEnd;
+    mockCallbacks.triggerDragOver = triggerDragOver;
+    return (
+      <div data-testid="dnd-context" onDragOver={onDragOver} onDragEnd={onDragEnd}>
+        {children}
+      </div>
+    );
+  },
+  useSensor: (sensor: any) => sensor,
+  PointerSensor: { createSensor: () => vi.fn() },
 }));
 
-vi.mock('@dnd-kit/react/sortable', () => ({
+vi.mock('@dnd-kit/sortable', () => ({
   useSortable: mockUseSortable,
+  SortableContext: ({ children, items }: any) => (
+    <div data-testid="sortable-context" data-items={JSON.stringify(items)}>
+      {children}
+    </div>
+  ),
+  verticalListSortingStrategy: {},
 }));
 
-vi.mock('@dnd-kit/dom', () => ({
-  PointerSensor: vi.fn(),
+vi.mock('@dnd-kit/utilities', () => ({
+  CSS: {
+    Translate: {
+      toString: (transform: any) => {
+        if (!transform) return '';
+        return `translate(${transform.x}px, ${transform.y}px)`;
+      },
+    },
+  },
 }));
 
 export { mockUseDraggable, mockUseDroppable, mockUseSortable, mockUseDragDropMonitor, mockDragDropProvider, mockCallbacks };

@@ -1,4 +1,4 @@
-import { useDroppable } from '@dnd-kit/react';
+import { useDroppable } from '@dnd-kit/core';
 import type { Task, Column as ColumnType } from '../types';
 import TaskCard from './TaskCard';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -9,9 +9,8 @@ interface ColumnProps {
 }
 
 export default function Column({ column, onEditTask }: ColumnProps) {
-  const { ref: setDroppableRef, isDropTarget } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: column.id,
-    group: column.id,
   });
 
   return (
@@ -27,9 +26,9 @@ export default function Column({ column, onEditTask }: ColumnProps) {
       </div>
 
       <div
-        ref={setDroppableRef}
+        ref={setNodeRef}
         className={`flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 no-scrollbar transition-colors ${
-          isDropTarget ? 'bg-white/5' : ''
+          isOver ? 'bg-white/5' : ''
         }`}
         style={{ scrollbarWidth: 'none' }}
       >

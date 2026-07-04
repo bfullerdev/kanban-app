@@ -122,11 +122,9 @@ describe('App', () => {
 
     // Simulate dragging "Design landing page" from "todo" to "doing"
     await act(async () => {
-      mockCallbacks.onDragOver?.({
-        operation: {
-          source: { id: 'task-1', group: 'todo', index: 0 },
-          target: { id: 'doing', group: 'doing', index: undefined },
-        },
+      mockCallbacks.triggerDragEnd?.({
+        active: { id: 'task-1', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
+        over: { id: 'doing', data: { current: { sortable: { containerId: 'doing', index: undefined } } } },
       });
     });
 

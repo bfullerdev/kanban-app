@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
-import { DragDropProvider } from '@dnd-kit/react';
-import { PointerSensor } from '@dnd-kit/dom';
+import { DndContext, useSensor, PointerSensor } from '@dnd-kit/core';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
@@ -17,36 +16,34 @@ interface BoardContentProps {
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
   const previousBoard = useRef(activeBoard);
+  const pointerSensor = useSensor(PointerSensor);
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
   };
 
   return (
-    <DragDropProvider
-      sensors={[PointerSensor]}
-      onDragOver={(event) => {
-        if (event.active?.id === undefined) return;
+    <DndContext
+      sensors={[pointerSensor]}
+      onDragOver={({ active, over }) => {
+        if (active?.id === undefined) return;
       }}
-      onDragEnd={(event) => {
-        if (event.canceled || event.operation?.canceled) {
+      onDragEnd={({ active, over }) => {
+        if (!over || !activeBoard) {
           if (activeBoard) {
             updateBoard(previousBoard.current);
           }
           return;
         }
 
-        const { source, target } = event.operation;
-        if (!source || !target || !activeBoard) return;
+        const isTargetSortable = over.data?.current?.sortable;
+        const targetGroup = isTargetSortable ? over.data.current.sortable.containerId : over.id;
+        const targetIndex = isTargetSortable ? over.data.current.sortable.index : undefined;
 
-        const isTargetSortable = target.index !== undefined;
-        const targetGroup = isTargetSortable ? target.group : target.id;
-        const targetIndex = isTargetSortable ? target.index : undefined;
-
-        if (isTargetSortable && source.group && source.group === targetGroup && source.index !== targetIndex) {
-          updateBoard((prev: Board) => reorderTask(prev, source.id as string, targetGroup as string, targetIndex as number));
-        } else if (targetGroup && targetGroup !== source.group) {
-          updateBoard((prev: Board) => moveTask(prev, source.id as string, targetGroup, targetIndex));
+        if (isTargetSortable && active.data?.current?.sortable && active.data.current.sortable.containerId === targetGroup && active.data.current.sortable.index !== targetIndex) {
+          updateBoard((prev: Board) => reorderTask(prev, active.id as string, targetGroup as string, targetIndex as number));
+        } else if (targetGroup && targetGroup !== (active.data?.current?.sortable?.containerId)) {
+          updateBoard((prev: Board) => moveTask(prev, active.id as string, targetGroup, targetIndex));
         }
         
         previousBoard.current = activeBoard;
@@ -68,7 +65,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
           />
         )}
       </>
-    </DragDropProvider>
+    </DndContext>
   );
 }
 

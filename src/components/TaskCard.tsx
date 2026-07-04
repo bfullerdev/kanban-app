@@ -1,5 +1,6 @@
 import { CheckSquare, GripVertical } from 'lucide-react';
-import { useSortable } from '@dnd-kit/react/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '../types';
 
 interface TaskCardProps {
@@ -9,18 +10,28 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
-  const { sortable, isDragging, handleRef, ref } = useSortable({
-    id: task.id,
-    index,
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id
   });
-  const { draggable: _draggable, register: _register, unregister: _unregister, destroy: _destroy, ...sortableProps } = sortable;
 
   const completedCount = task.subtasks.filter((s) => s.completed).length;
 
+  const style = {
+    transition,
+    transform: CSS.Translate.toString(transform),
+  };
+
   return (
     <div
-      {...sortableProps}
-      ref={ref}
+      ref={setNodeRef}
+      style={style}
       data-id={task.id}
       className={`transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
     >
@@ -30,7 +41,8 @@ export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
           onEdit(task);
         }}
         className="w-full text-left p-3 rounded-lg bg-surface border border-white/5 shadow-sm hover:border-white/10 hover:shadow-md transition-all cursor-pointer"
-        ref={handleRef}
+        {...attributes}
+        {...listeners}
       >
         <div className="flex items-start gap-2">
           <div

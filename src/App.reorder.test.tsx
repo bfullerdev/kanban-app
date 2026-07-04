@@ -18,11 +18,9 @@ describe('App - task reordering', () => {
     expect(tasks.length).toBeGreaterThan(0);
 
     await act(async () => {
-      mockCallbacks.onDragEnd?.({
-        operation: {
-          source: { id: 'task-1', group: 'todo', index: 0 },
-          target: { id: 'todo', group: 'todo', index: 2 },
-        },
+      mockCallbacks.triggerDragEnd?.({
+        active: { id: 'task-1', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
+        over: { id: 'todo', data: { current: { sortable: { containerId: 'todo', index: 2 } } } },
       });
     });
 
@@ -37,11 +35,9 @@ describe('App - task reordering', () => {
     render(<App />);
 
     await act(async () => {
-      mockCallbacks.onDragEnd?.({
-        operation: {
-          source: { id: 'task-1', group: 'todo', index: 0 },
-          target: { id: 'todo', group: 'todo', index: 0 },
-        },
+      mockCallbacks.triggerDragEnd?.({
+        active: { id: 'task-1', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
+        over: { id: 'todo', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
       });
     });
 
@@ -60,11 +56,9 @@ describe('App - task reordering', () => {
     const taskCount = tasks.length;
 
     await act(async () => {
-      mockCallbacks.onDragEnd?.({
-        operation: {
-          source: { id: 'task-1', group: 'todo', index: 0 },
-          target: { id: 'todo', group: 'todo', index: taskCount },
-        },
+      mockCallbacks.triggerDragEnd?.({
+        active: { id: 'task-1', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
+        over: { id: 'todo', data: { current: { sortable: { containerId: 'todo', index: taskCount } } } },
       });
     });
 
@@ -85,11 +79,9 @@ describe('App - task reordering', () => {
     expect(within(doingColumn).queryByText('Design landing page')).not.toBeInTheDocument();
 
     await act(async () => {
-      mockCallbacks.onDragOver?.({
-        operation: {
-          source: { id: 'task-1', group: 'todo', index: 0 },
-          target: { id: 'doing', group: 'doing', index: undefined },
-        },
+      mockCallbacks.triggerDragEnd?.({
+        active: { id: 'task-1', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
+        over: { id: 'doing', data: { current: { sortable: { containerId: 'doing', index: undefined } } } },
       });
     });
 
@@ -109,11 +101,9 @@ describe('App - task reordering', () => {
     const firstTaskBefore = todoColBefore.tasks[0]?.id;
 
     await act(async () => {
-      mockCallbacks.onDragEnd?.({
-        operation: {
-          source: { id: 'task-1', group: 'todo', index: 0 },
-          target: { id: 'todo', group: 'todo', index: 0 },
-        },
+      mockCallbacks.triggerDragEnd?.({
+        active: { id: 'task-1', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
+        over: { id: 'todo', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
       });
     });
 
