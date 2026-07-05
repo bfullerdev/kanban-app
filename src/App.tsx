@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { DndContext, useSensor, PointerSensor } from '@dnd-kit/core';
+import { DndContext, DragOverlay, useSensor, PointerSensor } from '@dnd-kit/core';
+import { GripVertical, CheckSquare } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
@@ -15,6 +16,7 @@ interface BoardContentProps {
 
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const previousBoard = useRef(activeBoard);
   const pointerSensor = useSensor(PointerSensor);
 
@@ -25,6 +27,11 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   return (
     <DndContext
       sensors={[pointerSensor]}
+      onDragStart={({ active }) => {
+        const task = activeBoard?.columns.flatMap(c => c.tasks).find(t => t.id === active.id);
+        if (task) setDraggedTask(task);
+      }}
+      onDragCancel={() => setDraggedTask(null)}
       onDragOver={({ active, over }) => {
         if (active?.id === undefined) return;
       }}
@@ -65,6 +72,29 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
           />
         )}
       </>
+      {draggedTask && (
+        <DragOverlay>
+          <div className="p-3 rounded-lg bg-[#2a2a3a] border border-white/10 shadow-lg w-76 opacity-90">
+            <div className="flex items-start gap-2">
+              <GripVertical className="w-4 h-4 text-white/30 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-white">{draggedTask.title}</h3>
+                {draggedTask.description && (
+                  <p className="mt-1 text-xs text-white/50 line-clamp-2">{draggedTask.description}</p>
+                )}
+                {draggedTask.subtasks.length > 0 && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5 text-white/40" />
+                    <span className="text-xs text-white/40">
+                      {draggedTask.subtasks.filter(s => s.completed).length} of {draggedTask.subtasks.length} subtasks
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DragOverlay>
+      )}
     </DndContext>
   );
 }
