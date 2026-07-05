@@ -18,6 +18,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const previousBoard = useRef(activeBoard);
+  const clearDraggedTaskTimeout = useRef<number | null>(null);
   const pointerSensor = useSensor(PointerSensor);
 
   const handleEditTask = (task: Task) => {
@@ -28,15 +29,30 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
     <DndContext
       sensors={[pointerSensor]}
       onDragStart={({ active }) => {
+        if (clearDraggedTaskTimeout.current !== null) {
+          window.clearTimeout(clearDraggedTaskTimeout.current);
+          clearDraggedTaskTimeout.current = null;
+        }
         previousBoard.current = activeBoard;
         const task = activeBoard?.columns.flatMap(c => c.tasks).find(t => t.id === active.id);
         if (task) setDraggedTask(task);
       }}
-      onDragCancel={() => setDraggedTask(null)}
-      onDragOver={({ active, over }) => {
+      onDragCancel={() => {
+        if (clearDraggedTaskTimeout.current !== null) {
+          window.clearTimeout(clearDraggedTaskTimeout.current);
+          clearDraggedTaskTimeout.current = null;
+        }
+        setDraggedTask(null);
+      }}
+      onDragOver={({ active }) => {
         if (active?.id === undefined) return;
       }}
       onDragEnd={({ active, over }) => {
+        clearDraggedTaskTimeout.current = window.setTimeout(() => {
+          setDraggedTask(null);
+          clearDraggedTaskTimeout.current = null;
+        }, 250);
+
         if (!over || !activeBoard) {
           if (activeBoard) {
             updateBoard(previousBoard.current);
@@ -44,11 +60,11 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
           return;
         }
 
-        const isTargetSortable = over.data?.current?.sortable;
-        const targetGroup = isTargetSortable ? over.data.current.sortable.containerId : over.id;
-        const targetIndex = isTargetSortable ? over.data.current.sortable.index : undefined;
+        const targetSortable = over.data?.current?.sortable;
+        const targetGroup = targetSortable ? targetSortable.containerId : over.id;
+        const targetIndex = targetSortable ? targetSortable.index : undefined;
 
-        if (isTargetSortable && active.data?.current?.sortable && active.data.current.sortable.containerId === targetGroup && active.data.current.sortable.index !== targetIndex) {
+        if (targetSortable && active.data?.current?.sortable && active.data.current.sortable.containerId === targetGroup && active.data.current.sortable.index !== targetIndex) {
           updateBoard((prev: Board) => reorderTask(prev, active.id as string, targetGroup as string, targetIndex as number));
         } else if (targetGroup && targetGroup !== (active.data?.current?.sortable?.containerId)) {
           updateBoard((prev: Board) => moveTask(prev, active.id as string, targetGroup, targetIndex));

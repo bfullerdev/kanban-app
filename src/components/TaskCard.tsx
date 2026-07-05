@@ -1,5 +1,5 @@
 import { CheckSquare, GripVertical } from 'lucide-react';
-import { useSortable } from '@dnd-kit/sortable';
+import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '../types';
 
@@ -9,7 +9,11 @@ interface TaskCardProps {
   index: number;
 }
 
-export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
+const animateWhileSorting: AnimateLayoutChanges = (args) => (
+  args.isSorting ? defaultAnimateLayoutChanges(args) : false
+);
+
+export default function TaskCard({ task, onEdit }: TaskCardProps) {
   const {
     attributes,
     listeners,
@@ -18,13 +22,14 @@ export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
     transition,
     isDragging,
   } = useSortable({
-    id: task.id
+    id: task.id,
+    animateLayoutChanges: animateWhileSorting,
   });
 
   const completedCount = task.subtasks.filter((s) => s.completed).length;
 
   const style = {
-    transition: 'transform 0.3s ease',
+    transition: transform ? 'transform 0.3s ease' : transition,
     transform: CSS.Translate.toString(transform),
     transformOrigin: '0 0',
   };
@@ -34,7 +39,7 @@ export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       data-id={task.id}
-      className={`transition-transform duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+      className={`transition-opacity duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
     >
       <button
         onClick={(e) => {
