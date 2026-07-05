@@ -52,7 +52,7 @@ vi.mock('@dnd-kit/core', () => ({
   closestCorners: vi.fn(),
   pointerWithin: vi.fn(() => []),
   useDroppable: mockUseDroppable,
-  DndContext: ({ children, onDragOver, onDragEnd, sensors }: any) => {
+  DndContext: ({ children, onDragOver, onDragEnd }: any) => {
     const triggerDragEnd = (event: any) => {
       if (onDragEnd) {
         onDragEnd(event);
@@ -76,6 +76,7 @@ vi.mock('@dnd-kit/core', () => ({
 }));
 
 vi.mock('@dnd-kit/sortable', () => ({
+  defaultAnimateLayoutChanges: vi.fn(({ isSorting }: any) => isSorting),
   useSortable: mockUseSortable,
   SortableContext: ({ children, items }: any) => (
     <div data-testid="sortable-context" data-items={JSON.stringify(items)}>

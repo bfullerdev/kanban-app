@@ -22,19 +22,19 @@ const mockTask: Task = {
 
 describe('TaskCard', () => {
   it('renders the task title', () => {
-    render(<TaskCard task={mockTask} onEdit={() => {}} columnIndex={0} columnId="todo" />);
+    render(<TaskCard task={mockTask} onEdit={() => {}} index={0} />);
 
     expect(screen.getByText('Design landing page')).toBeInTheDocument();
   });
 
   it('renders the description', () => {
-    render(<TaskCard task={mockTask} onEdit={() => {}} columnIndex={0} columnId="todo" />);
+    render(<TaskCard task={mockTask} onEdit={() => {}} index={0} />);
 
     expect(screen.getByText('Create high-fidelity mockups')).toBeInTheDocument();
   });
 
   it('shows subtask progress', () => {
-    render(<TaskCard task={mockTask} onEdit={() => {}} columnIndex={0} columnId="todo" />);
+    render(<TaskCard task={mockTask} onEdit={() => {}} index={0} />);
 
     expect(screen.getByText('1 of 2 subtasks')).toBeInTheDocument();
   });
@@ -45,7 +45,7 @@ describe('TaskCard', () => {
       subtasks: [],
     };
 
-    render(<TaskCard task={taskNoSubtasks} onEdit={() => {}} columnIndex={0} columnId="todo" />);
+    render(<TaskCard task={taskNoSubtasks} onEdit={() => {}} index={0} />);
 
     expect(screen.queryByText(/subtasks/)).not.toBeInTheDocument();
   });
@@ -53,7 +53,7 @@ describe('TaskCard', () => {
   it('calls onEdit when the card is clicked', async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();
-    render(<TaskCard task={mockTask} onEdit={onEdit} columnIndex={0} columnId="todo" />);
+    render(<TaskCard task={mockTask} onEdit={onEdit} index={0} />);
 
     await user.click(screen.getByRole('button'));
     expect(onEdit).toHaveBeenCalledWith(mockTask);
@@ -65,8 +65,9 @@ describe('TaskCard', () => {
       description: '',
     };
 
-    render(<TaskCard task={taskNoDesc} onEdit={() => {}} columnIndex={0} columnId="todo" />);
+    render(<TaskCard task={taskNoDesc} onEdit={() => {}} index={0} />);
 
     expect(screen.queryByText('Create high-fidelity mockups')).not.toBeInTheDocument();
   });
 });
+

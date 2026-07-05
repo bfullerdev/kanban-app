@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TaskModal from './TaskModal';
-import type { Board, Task } from '../../types';
+import type { Board, Task } from '../types';
 
 const mockBoard: Board = {
   id: 'board-1',
