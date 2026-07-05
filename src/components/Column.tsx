@@ -34,7 +34,7 @@ export default function Column({ column, onEditTask }: ColumnProps) {
       <div className={`flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 no-scrollbar transition-colors ${
         isOver ? 'bg-white/5' : 'bg-[#1a1a2a]'
       }`} style={{ scrollbarWidth: 'none' }}>
-        <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext id={column.id} items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {column.tasks.map((task, index) => (
             <TaskCard
               key={task.id}

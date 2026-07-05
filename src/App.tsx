@@ -28,6 +28,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
     <DndContext
       sensors={[pointerSensor]}
       onDragStart={({ active }) => {
+        previousBoard.current = activeBoard;
         const task = activeBoard?.columns.flatMap(c => c.tasks).find(t => t.id === active.id);
         if (task) setDraggedTask(task);
       }}
@@ -52,8 +53,6 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         } else if (targetGroup && targetGroup !== (active.data?.current?.sortable?.containerId)) {
           updateBoard((prev: Board) => moveTask(prev, active.id as string, targetGroup, targetIndex));
         }
-        
-        previousBoard.current = activeBoard;
       }}
     >
       <>
