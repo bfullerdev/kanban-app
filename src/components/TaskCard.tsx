@@ -24,8 +24,9 @@ export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
   const completedCount = task.subtasks.filter((s) => s.completed).length;
 
   const style = {
-    transition,
+    transition: 'transform 0.3s ease',
     transform: CSS.Translate.toString(transform),
+    transformOrigin: '0 0',
   };
 
   return (
@@ -33,7 +34,7 @@ export default function TaskCard({ task, onEdit, index }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       data-id={task.id}
-      className={`transition-all duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+      className={`transition-transform duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
     >
       <button
         onClick={(e) => {
