@@ -92,6 +92,65 @@ describe('App - task reordering', () => {
     expect(within(updatedTodoColumn).queryByText('Design landing page')).not.toBeInTheDocument();
   });
 
+  it('previews a cross-column move while dragging over a destination task', async () => {
+    localStorage.setItem('kanban-active-board', 'board-with-destination-tasks');
+    localStorage.setItem('kanban-boards', JSON.stringify([
+      {
+        id: 'board-with-destination-tasks',
+        title: 'Board with Destination Tasks',
+        columns: [
+          {
+            id: 'todo',
+            title: 'To Do',
+            color: '#6366f1',
+            tasks: [
+              {
+                id: 'task-1',
+                title: 'Dragged task',
+                description: '',
+                status: 'todo',
+                subtasks: [],
+              },
+            ],
+          },
+          {
+            id: 'doing',
+            title: 'In Progress',
+            color: '#f59e0b',
+            tasks: [
+              {
+                id: 'task-2',
+                title: 'Existing destination task',
+                description: '',
+                status: 'doing',
+                subtasks: [],
+              },
+            ],
+          },
+          { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
+        ],
+      },
+    ]));
+
+    render(<App />);
+
+    await act(async () => {
+      mockCallbacks.triggerDragOver?.({
+        active: { id: 'task-1', data: { current: { sortable: { containerId: 'todo', index: 0 } } } },
+        over: {
+          id: 'task-2',
+          data: { current: { sortable: { containerId: 'doing', index: 0 } } },
+        },
+      });
+    });
+
+    const doingColumn = document.querySelector('[data-id="doing"]') as HTMLElement;
+    const draggedTask = within(doingColumn).getByText('Dragged task');
+    const existingTask = within(doingColumn).getByText('Existing destination task');
+
+    expect(draggedTask.compareDocumentPosition(existingTask) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('does not reorder when dropping at the same position', async () => {
     render(<App />);
 

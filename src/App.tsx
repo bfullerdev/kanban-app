@@ -1,5 +1,15 @@
-import { useRef, useState } from 'react';
-import { DndContext, DragOverlay, useSensor, PointerSensor } from '@dnd-kit/core';
+import { useEffect, useRef, useState } from 'react';
+import {
+  closestCorners,
+  DndContext,
+  DragOverlay,
+  pointerWithin,
+  useSensor,
+  PointerSensor,
+  type Active,
+  type CollisionDetection,
+  type Over,
+} from '@dnd-kit/core';
 import { GripVertical, CheckSquare } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
@@ -14,6 +24,51 @@ interface BoardContentProps {
   updateBoard: (fn: Board | ((prev: Board) => Board)) => void;
 }
 
+const pointerFirstCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+
+  return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
+};
+
+function getTaskLocation(board: Board, taskId: string) {
+  for (const column of board.columns) {
+    const taskIndex = column.tasks.findIndex((task) => task.id === taskId);
+    if (taskIndex !== -1) {
+      return { columnId: column.id, taskIndex };
+    }
+  }
+
+  return null;
+}
+
+function getDragTarget(board: Board, active: Active, over: Over) {
+  const targetSortable = over.data?.current?.sortable;
+  const targetColumnId = targetSortable ? targetSortable.containerId : over.id;
+  const targetColumn = board.columns.find((column) => column.id === targetColumnId);
+
+  if (!targetColumn) return null;
+
+  if (!targetSortable) {
+    return { columnId: targetColumnId, taskIndex: targetColumn.tasks.length };
+  }
+
+  const overIndex = typeof targetSortable.index === 'number' ? targetSortable.index : targetColumn.tasks.length;
+  const activeTop = active.rect?.current?.translated?.top;
+  const overTop = over.rect?.top;
+  const overHeight = over.rect?.height;
+  const isBelowOverItem = (
+    activeTop !== undefined
+    && overTop !== undefined
+    && overHeight !== undefined
+    && activeTop > overTop + overHeight / 2
+  );
+
+  return {
+    columnId: targetColumnId,
+    taskIndex: overIndex + (isBelowOverItem ? 1 : 0),
+  };
+}
+
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
@@ -25,8 +80,15 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
     setEditingTask(task);
   };
 
+  useEffect(() => () => {
+    if (clearDraggedTaskTimeout.current !== null) {
+      window.clearTimeout(clearDraggedTaskTimeout.current);
+    }
+  }, []);
+
   return (
     <DndContext
+      collisionDetection={pointerFirstCollisionDetection}
       sensors={[pointerSensor]}
       onDragStart={({ active }) => {
         if (clearDraggedTaskTimeout.current !== null) {
@@ -42,10 +104,18 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
           window.clearTimeout(clearDraggedTaskTimeout.current);
           clearDraggedTaskTimeout.current = null;
         }
+        updateBoard(previousBoard.current);
         setDraggedTask(null);
       }}
-      onDragOver={({ active }) => {
-        if (active?.id === undefined) return;
+      onDragOver={({ active, over }) => {
+        if (active?.id === undefined || !over) return;
+
+        const sourceLocation = getTaskLocation(activeBoard, active.id as string);
+        const target = getDragTarget(activeBoard, active, over);
+
+        if (!sourceLocation || !target || sourceLocation.columnId === target.columnId) return;
+
+        updateBoard((prev: Board) => moveTask(prev, active.id as string, target.columnId, target.taskIndex));
       }}
       onDragEnd={({ active, over }) => {
         clearDraggedTaskTimeout.current = window.setTimeout(() => {
@@ -60,14 +130,15 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
           return;
         }
 
-        const targetSortable = over.data?.current?.sortable;
-        const targetGroup = targetSortable ? targetSortable.containerId : over.id;
-        const targetIndex = targetSortable ? targetSortable.index : undefined;
+        const sourceLocation = getTaskLocation(activeBoard, active.id as string);
+        const target = getDragTarget(activeBoard, active, over);
 
-        if (targetSortable && active.data?.current?.sortable && active.data.current.sortable.containerId === targetGroup && active.data.current.sortable.index !== targetIndex) {
-          updateBoard((prev: Board) => reorderTask(prev, active.id as string, targetGroup as string, targetIndex as number));
-        } else if (targetGroup && targetGroup !== (active.data?.current?.sortable?.containerId)) {
-          updateBoard((prev: Board) => moveTask(prev, active.id as string, targetGroup, targetIndex));
+        if (!sourceLocation || !target) return;
+
+        if (sourceLocation.columnId === target.columnId && sourceLocation.taskIndex !== target.taskIndex) {
+          updateBoard((prev: Board) => reorderTask(prev, active.id as string, target.columnId, target.taskIndex));
+        } else if (sourceLocation.columnId !== target.columnId) {
+          updateBoard((prev: Board) => moveTask(prev, active.id as string, target.columnId, target.taskIndex));
         }
       }}
     >

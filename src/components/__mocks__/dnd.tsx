@@ -49,6 +49,8 @@ const mockDragDropProvider = vi.fn(({ children, onDragOver, onDragEnd }: any) =>
 });
 
 vi.mock('@dnd-kit/core', () => ({
+  closestCorners: vi.fn(),
+  pointerWithin: vi.fn(() => []),
   useDroppable: mockUseDroppable,
   DndContext: ({ children, onDragOver, onDragEnd, sensors }: any) => {
     const triggerDragEnd = (event: any) => {
