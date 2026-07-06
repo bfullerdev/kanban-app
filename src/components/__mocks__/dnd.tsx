@@ -36,6 +36,7 @@ const mockUseDragDropMonitor = {
 const mockCallbacks: any = {
   onDragEnd: null,
   onDragOver: null,
+  onDragCancel: null,
 };
 
 const mockDragDropProvider = vi.fn(({ children, onDragOver, onDragEnd }: any) => {
@@ -52,7 +53,7 @@ vi.mock('@dnd-kit/core', () => ({
   closestCorners: vi.fn(),
   pointerWithin: vi.fn(() => []),
   useDroppable: mockUseDroppable,
-  DndContext: ({ children, onDragOver, onDragEnd }: any) => {
+  DndContext: ({ children, onDragOver, onDragEnd, onDragCancel }: any) => {
     const triggerDragEnd = (event: any) => {
       if (onDragEnd) {
         onDragEnd(event);
@@ -63,8 +64,14 @@ vi.mock('@dnd-kit/core', () => ({
         onDragOver(event);
       }
     };
+    const triggerDragCancel = () => {
+      if (onDragCancel) {
+        onDragCancel();
+      }
+    };
     mockCallbacks.triggerDragEnd = triggerDragEnd;
     mockCallbacks.triggerDragOver = triggerDragOver;
+    mockCallbacks.triggerDragCancel = triggerDragCancel;
     return (
       <div data-testid="dnd-context" onDragOver={onDragOver} onDragEnd={onDragEnd}>
         {children}

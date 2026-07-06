@@ -6,7 +6,6 @@ import {
   pointerWithin,
   useSensor,
   PointerSensor,
-  type Active,
   type CollisionDetection,
   type Over,
 } from '@dnd-kit/core';
@@ -26,6 +25,15 @@ interface BoardContentProps {
 
 const pointerFirstCollisionDetection: CollisionDetection = (args) => {
   const pointerCollisions = pointerWithin(args);
+  const sortablePointerCollisions = pointerCollisions.filter(({ id }) => {
+    const container = args.droppableContainers.find((droppable) => droppable.id === id);
+
+    return container?.data.current?.sortable;
+  });
+
+  if (sortablePointerCollisions.length > 0) {
+    return sortablePointerCollisions;
+  }
 
   return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
 };
@@ -41,7 +49,7 @@ function getTaskLocation(board: Board, taskId: string) {
   return null;
 }
 
-function getDragTarget(board: Board, active: Active, over: Over) {
+function getDragTarget(board: Board, over: Over) {
   const targetSortable = over.data?.current?.sortable;
   const targetColumnId = targetSortable ? targetSortable.containerId : over.id;
   const targetColumn = board.columns.find((column) => column.id === targetColumnId);
@@ -52,20 +60,9 @@ function getDragTarget(board: Board, active: Active, over: Over) {
     return { columnId: targetColumnId, taskIndex: targetColumn.tasks.length };
   }
 
-  const overIndex = typeof targetSortable.index === 'number' ? targetSortable.index : targetColumn.tasks.length;
-  const activeTop = active.rect?.current?.translated?.top;
-  const overTop = over.rect?.top;
-  const overHeight = over.rect?.height;
-  const isBelowOverItem = (
-    activeTop !== undefined
-    && overTop !== undefined
-    && overHeight !== undefined
-    && activeTop > overTop + overHeight / 2
-  );
-
   return {
     columnId: targetColumnId,
-    taskIndex: overIndex + (isBelowOverItem ? 1 : 0),
+    taskIndex: typeof targetSortable.index === 'number' ? targetSortable.index : targetColumn.tasks.length,
   };
 }
 
@@ -111,11 +108,13 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         if (active?.id === undefined || !over) return;
 
         const sourceLocation = getTaskLocation(activeBoard, active.id as string);
-        const target = getDragTarget(activeBoard, active, over);
+        const target = getDragTarget(activeBoard, over);
 
-        if (!sourceLocation || !target || sourceLocation.columnId === target.columnId) return;
+        if (!sourceLocation || !target) return;
 
-        updateBoard((prev: Board) => moveTask(prev, active.id as string, target.columnId, target.taskIndex));
+        if (sourceLocation.columnId !== target.columnId) {
+          updateBoard((prev: Board) => moveTask(prev, active.id as string, target.columnId, target.taskIndex));
+        }
       }}
       onDragEnd={({ active, over }) => {
         clearDraggedTaskTimeout.current = window.setTimeout(() => {
@@ -124,14 +123,12 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         }, 250);
 
         if (!over || !activeBoard) {
-          if (activeBoard) {
-            updateBoard(previousBoard.current);
-          }
+          updateBoard(previousBoard.current);
           return;
         }
 
         const sourceLocation = getTaskLocation(activeBoard, active.id as string);
-        const target = getDragTarget(activeBoard, active, over);
+        const target = getDragTarget(activeBoard, over);
 
         if (!sourceLocation || !target) return;
 
@@ -160,7 +157,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       </>
       {draggedTask && (
         <DragOverlay>
-          <div className="p-3 rounded-lg bg-[#2a2a3a] border border-white/10 shadow-lg w-76 opacity-90">
+          <div className="p-3 rounded-lg bg-[#2a2a3a] border border-white/10 shadow-lg w-80 opacity-90">
             <div className="flex items-start gap-2">
               <GripVertical className="w-4 h-4 text-white/30 mt-0.5" />
               <div className="flex-1 min-w-0">
