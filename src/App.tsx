@@ -166,7 +166,9 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         <DragOverlay>
           <div className="p-3 rounded-lg bg-[#2a2a3a] border border-white/10 shadow-lg opacity-90" style={{ minWidth: overlayWidth, width: overlayWidth }}>
             <div className="flex items-start gap-2">
-              <GripVertical className="w-4 h-4 text-white/30 mt-0.5" />
+              <span className="inline-flex items-center justify-center mt-0.5 select-none p-1 hover:bg-white/5 rounded">
+                <GripVertical className="w-4 h-4 text-white/30 hover:text-white/60 cursor-grab active:cursor-grabbing" />
+              </span>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-medium text-white">{draggedTask.title}</h3>
                 {draggedTask.description && (
