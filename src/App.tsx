@@ -69,6 +69,7 @@ function getDragTarget(board: Board, over: Over) {
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [overlayWidth, setOverlayWidth] = useState<string | null>(null);
   const previousBoard = useRef(activeBoard);
   const clearDraggedTaskTimeout = useRef<number | null>(null);
   const pointerSensor = useSensor(PointerSensor);
@@ -95,6 +96,10 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         previousBoard.current = activeBoard;
         const task = activeBoard?.columns.flatMap(c => c.tasks).find(t => t.id === active.id);
         if (task) setDraggedTask(task);
+        const cardEl = document.querySelector(`[data-id="${task?.id}"]`);
+        if (cardEl) {
+          setOverlayWidth(`${cardEl.clientWidth}px`);
+        }
       }}
       onDragCancel={() => {
         if (clearDraggedTaskTimeout.current !== null) {
@@ -103,6 +108,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         }
         updateBoard(previousBoard.current);
         setDraggedTask(null);
+        setOverlayWidth(null);
       }}
       onDragOver={({ active, over }) => {
         if (active?.id === undefined || !over) return;
@@ -119,6 +125,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       onDragEnd={({ active, over }) => {
         clearDraggedTaskTimeout.current = window.setTimeout(() => {
           setDraggedTask(null);
+          setOverlayWidth(null);
           clearDraggedTaskTimeout.current = null;
         }, 250);
 
@@ -157,7 +164,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       </>
       {draggedTask && (
         <DragOverlay>
-          <div className="p-3 rounded-lg bg-[#2a2a3a] border border-white/10 shadow-lg w-80 opacity-90">
+          <div className="p-3 rounded-lg bg-[#2a2a3a] border border-white/10 shadow-lg opacity-90" style={{ minWidth: overlayWidth, width: overlayWidth }}>
             <div className="flex items-start gap-2">
               <GripVertical className="w-4 h-4 text-white/30 mt-0.5" />
               <div className="flex-1 min-w-0">
