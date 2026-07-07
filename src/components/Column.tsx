@@ -6,9 +6,10 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 interface ColumnProps {
   column: ColumnType;
   onEditTask: (task: Task) => void;
+  tasks: Task[];
 }
 
-export default function Column({ column, onEditTask }: ColumnProps) {
+export default function Column({ column, onEditTask, tasks }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
   });
@@ -27,15 +28,14 @@ export default function Column({ column, onEditTask }: ColumnProps) {
           style={{ backgroundColor: column.color }}
         />
         <h2 className="text-sm font-semibold text-white/80">
-          {column.title} ({column.tasks.length})
+          {column.title} ({tasks.length})
         </h2>
       </div>
-
       <div className={`flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 no-scrollbar transition-colors ${
         isOver ? 'bg-white/5' : 'bg-[#1a1a2a]'
       }`} style={{ scrollbarWidth: 'none' }}>
-        <SortableContext id={column.id} items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-          {column.tasks.map((task, index) => (
+        <SortableContext id={column.id} items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          {tasks.map((task, index) => (
             <TaskCard
               key={task.id}
               task={task}
@@ -48,3 +48,4 @@ export default function Column({ column, onEditTask }: ColumnProps) {
     </div>
   );
 }
+

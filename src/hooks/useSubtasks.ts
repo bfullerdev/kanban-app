@@ -9,7 +9,7 @@ interface SubtaskInput {
 interface UseSubtasksOptions {
   isEdit: boolean;
   updateBoard?: (fn: Board | ((prev: Board) => Board)) => void;
-  task?: { id: string };
+  task?: { id: string; columnId: string };
 }
 
 export function useSubtasks(initialSubtasks: Subtask[], options: UseSubtasksOptions) {
@@ -45,22 +45,16 @@ export function useSubtasks(initialSubtasks: Subtask[], options: UseSubtasksOpti
       if (isEdit && task && updateBoard) {
         updateBoard((prev: Board) => ({
           ...prev,
-          columns: prev.columns.map((col) => {
-            const colTask = col.tasks.find((t) => t.id === task.id);
-            if (!colTask) return col;
-            return {
-              ...col,
-              tasks: col.tasks.map((t) =>
-                t.id === task.id
-                  ? {
-                      ...t,
-                      subtasks: t.subtasks.map((s) =>
-                        s.id === subtaskId ? { ...s, completed: !s.completed } : s
-                      ),
-                    }
-                  : t
-              ),
-            };
+          tasks: prev.tasks.map((t) => {
+            if (t.id === task.id) {
+              return {
+                ...t,
+                subtasks: t.subtasks.map((s) =>
+                  s.id === subtaskId ? { ...s, completed: !s.completed } : s
+                ),
+              };
+            }
+            return t;
           }),
         }));
       }

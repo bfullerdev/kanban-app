@@ -4,7 +4,6 @@ import type { Board } from '../types';
 const STORAGE_KEY = 'kanban-boards';
 const ACTIVE_KEY = 'kanban-active-board';
 
-// TODO: Replace localStorage logic here with API calls (e.g., fetch/axios) later.
 function loadBoards(): Board[] {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) return [];
@@ -33,45 +32,43 @@ function createDefaultBoards(): Board[] {
       id: 'platform-launch',
       title: 'Platform Launch',
       columns: [
+        { id: 'todo', title: 'To Do', color: '#6366f1' },
+        { id: 'doing', title: 'In Progress', color: '#f59e0b' },
+        { id: 'done', title: 'Done', color: '#10b981' },
+      ],
+      tasks: [
         {
-          id: 'todo',
-          title: 'To Do',
-          color: '#6366f1',
-          tasks: [
-            {
-              id: 'task-1',
-              title: 'Design landing page',
-              description: 'Create high-fidelity mockups for the main landing page.',
-              status: 'todo',
-              subtasks: [
-                { id: 'sub-1', title: 'Wireframe layout', completed: true },
-                { id: 'sub-2', title: 'Hero section design', completed: false },
-                { id: 'sub-3', title: 'CTA buttons', completed: false },
-              ],
-            },
+          id: 'task-1',
+          columnId: 'todo',
+          title: 'Design landing page',
+          description: 'Create high-fidelity mockups for the main landing page.',
+          subtasks: [
+            { id: 'sub-1', title: 'Wireframe layout', completed: true },
+            { id: 'sub-2', title: 'Hero section design', completed: false },
+            { id: 'sub-3', title: 'CTA buttons', completed: false },
           ],
         },
-        { id: 'doing', title: 'In Progress', color: '#f59e0b', tasks: [] },
-        { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
       ],
     },
     {
       id: 'marketing-plan',
       title: 'Marketing Plan',
       columns: [
-        { id: 'todo', title: 'To Do', color: '#6366f1', tasks: [] },
-        { id: 'doing', title: 'In Progress', color: '#f59e0b', tasks: [] },
-        { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
+        { id: 'todo', title: 'To Do', color: '#6366f1' },
+        { id: 'doing', title: 'In Progress', color: '#f59e0b' },
+        { id: 'done', title: 'Done', color: '#10b981' },
       ],
+      tasks: [],
     },
     {
       id: 'roadmap',
       title: 'Roadmap',
       columns: [
-        { id: 'todo', title: 'To Do', color: '#6366f1', tasks: [] },
-        { id: 'doing', title: 'In Progress', color: '#f59e0b', tasks: [] },
-        { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
+        { id: 'todo', title: 'To Do', color: '#6366f1' },
+        { id: 'doing', title: 'In Progress', color: '#f59e0b' },
+        { id: 'done', title: 'Done', color: '#10b981' },
       ],
+      tasks: [],
     },
   ];
 }

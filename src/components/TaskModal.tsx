@@ -16,10 +16,9 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
 
   const [title, setTitle] = useState(isEdit ? task.title : '');
   const [description, setDescription] = useState(isEdit ? task.description : '');
-  const [status, setStatus] = useState<'todo' | 'doing' | 'done'>(
-    isEdit
-      ? (task.status as 'todo' | 'doing' | 'done')
-      : ((board.columns[0]?.id as 'todo' | 'doing' | 'done') || 'todo')
+  const [columnId, setColumnId] = useState<string>(isEdit
+    ? (task.columnId as string)
+    : (board.columns[0]?.id || 'todo')
   );
 
   const {
@@ -42,15 +41,15 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
         ...task,
         title: title.trim(),
         description: description.trim(),
-        status,
+        columnId,
         subtasks: getSubtasksForSubmit(),
       };
 
-      const statusChanged = task.status !== status;
+      const columnChanged = task.columnId !== columnId;
 
       updateBoard((prev: Board) => {
-        if (statusChanged) {
-          return moveTask(prev, task.id, status, undefined, updatedTask);
+        if (columnChanged) {
+          return moveTask(prev, task.id, columnId, 0, updatedTask);
         }
         return updateTaskInBoard(prev, updatedTask);
       });
@@ -59,15 +58,13 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
         id: crypto.randomUUID(),
         title: title.trim(),
         description: description.trim(),
-        status,
+        columnId,
         subtasks: getSubtasksForSubmit(),
       };
 
       updateBoard((prev: Board) => ({
         ...prev,
-        columns: prev.columns.map((col) =>
-          col.id === status ? { ...col, tasks: [...col.tasks, newTask] } : col
-        ),
+        tasks: [...prev.tasks, newTask],
       }));
     }
 
@@ -115,10 +112,10 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-1.5">Status</label>
+              <label className="block text-sm font-medium text-white/70 mb-1.5">Column</label>
               <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as 'todo' | 'doing' | 'done')}
+                value={columnId}
+                onChange={(e) => setColumnId(e.target.value)}
                 className="w-full px-3 py-2 bg-background border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
               >
                 {board.columns.map((col) => (
@@ -207,7 +204,6 @@ export default function TaskModal({ board, updateBoard, onClose, task }: TaskMod
               )}
             </div>
           </div>
-
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/5">
             <button
               type="button"

@@ -1,163 +1,46 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  closestCorners,
-  DndContext,
-  DragOverlay,
-  pointerWithin,
-  useSensor,
-  useSensors,
-  MouseSensor,
-  TouchSensor,
-  KeyboardSensor,
-  type CollisionDetection,
-  type Over,
-} from '@dnd-kit/core';
 import { GripVertical, CheckSquare } from 'lucide-react';
+import { DndContext, DragOverlay } from '@dnd-kit/core';
 import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
 import TaskModal from './components/TaskModal';
 import { useBoardData } from './hooks/useBoardData';
-import { moveTask, reorderTask } from './utils/boardUpdater';
-import type { Task, Board } from './types';
+import { useKanbanDrag } from './hooks/useKanbanDrag';
+import type { Board } from './types';
 
-interface BoardContentProps {
-  activeBoard: Board;
-  updateBoard: (fn: Board | ((prev: Board) => Board)) => void;
-}
-
-const pointerFirstCollisionDetection: CollisionDetection = (args) => {
-  const pointerCollisions = pointerWithin(args);
-  const sortablePointerCollisions = pointerCollisions.filter(({ id }) => {
-    const container = args.droppableContainers.find((droppable) => droppable.id === id);
-
-    return container?.data.current?.sortable;
-  });
-
-  if (sortablePointerCollisions.length > 0) {
-    return sortablePointerCollisions;
-  }
-
-  return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
-};
-
-function getTaskLocation(board: Board, taskId: string) {
-  for (const column of board.columns) {
-    const taskIndex = column.tasks.findIndex((task) => task.id === taskId);
-    if (taskIndex !== -1) {
-      return { columnId: column.id, taskIndex };
-    }
-  }
-
-  return null;
-}
-
-function getDragTarget(board: Board, over: Over) {
-  const targetSortable = over.data?.current?.sortable;
-  const targetColumnId = targetSortable ? targetSortable.containerId : over.id;
-  const targetColumn = board.columns.find((column) => column.id === targetColumnId);
-
-  if (!targetColumn) return null;
-
-  if (!targetSortable) {
-    return { columnId: targetColumnId, taskIndex: targetColumn.tasks.length };
-  }
-
-  return {
-    columnId: targetColumnId,
-    taskIndex: typeof targetSortable.index === 'number' ? targetSortable.index : targetColumn.tasks.length,
-  };
-}
-
-function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
-  const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
-  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-  const [overlayWidth, setOverlayWidth] = useState<string | undefined>(undefined);
-  const previousBoard = useRef(activeBoard);
-  const clearDraggedTaskTimeout = useRef<number | null>(null);
-  const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor)
-  );
-
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-  };
-
-  useEffect(() => () => {
-    if (clearDraggedTaskTimeout.current !== null) {
-      window.clearTimeout(clearDraggedTaskTimeout.current);
-    }
-  }, []);
+function BoardContent({ activeBoard, updateBoard }: { activeBoard: Board; updateBoard: (fn: Board | ((prev: Board) => Board)) => void }) {
+  const {
+    sensors,
+    collisionDetection,
+    handleDragStart,
+    handleDragCancel,
+    handleDragOver,
+    handleDragEnd,
+    draggedTask,
+    overlayWidth,
+    editingTask,
+    setEditingTask,
+  } = useKanbanDrag({ activeBoard, updateBoard });
 
   return (
     <DndContext
-      collisionDetection={pointerFirstCollisionDetection}
+      collisionDetection={collisionDetection}
       sensors={sensors}
-      onDragStart={({ active }) => {
-        if (clearDraggedTaskTimeout.current !== null) {
-          window.clearTimeout(clearDraggedTaskTimeout.current);
-          clearDraggedTaskTimeout.current = null;
-        }
-        previousBoard.current = activeBoard;
-        const task = activeBoard?.columns.flatMap(c => c.tasks).find(t => t.id === active.id);
-        if (task) setDraggedTask(task);
-        const cardEl = document.querySelector(`[data-id="${task?.id}"]`);
-        if (cardEl) {
-          setOverlayWidth(`${cardEl.clientWidth}px`);
-        }
-      }}
-      onDragCancel={() => {
-        if (clearDraggedTaskTimeout.current !== null) {
-          window.clearTimeout(clearDraggedTaskTimeout.current);
-          clearDraggedTaskTimeout.current = null;
-        }
-        updateBoard(previousBoard.current);
-        setDraggedTask(null);
-        setOverlayWidth(undefined);
-      }}
-      onDragOver={({ active, over }) => {
-        if (active?.id === undefined || !over) return;
-
-        const sourceLocation = getTaskLocation(activeBoard, active.id as string);
-        const target = getDragTarget(activeBoard, over);
-
-        if (!sourceLocation || !target) return;
-
-        if (sourceLocation.columnId !== target.columnId) {
-          updateBoard((prev: Board) => moveTask(prev, active.id as string, target.columnId, target.taskIndex));
-        }
-      }}
-      onDragEnd={({ active, over }) => {
-        clearDraggedTaskTimeout.current = window.setTimeout(() => {
-          setDraggedTask(null);
-        setOverlayWidth(undefined);
-          clearDraggedTaskTimeout.current = null;
-        }, 250);
-
-        if (!over || !activeBoard) {
-          updateBoard(previousBoard.current);
-          return;
-        }
-
-        const sourceLocation = getTaskLocation(activeBoard, active.id as string);
-        const target = getDragTarget(activeBoard, over);
-
-        if (!sourceLocation || !target) return;
-
-        if (sourceLocation.columnId === target.columnId && sourceLocation.taskIndex !== target.taskIndex) {
-          updateBoard((prev: Board) => reorderTask(prev, active.id as string, target.columnId, target.taskIndex));
-        } else if (sourceLocation.columnId !== target.columnId) {
-          updateBoard((prev: Board) => moveTask(prev, active.id as string, target.columnId, target.taskIndex));
-        }
-      }}
+      onDragStart={handleDragStart}
+      onDragCancel={handleDragCancel}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
     >
       <>
         <BoardHeader title={activeBoard.title} onOpenModal={() => setEditingTask(null)} />
         <div className="flex gap-4 px-6 py-4 overflow-x-auto flex-1 min-h-0">
           {activeBoard.columns.map((column) => (
-            <Column key={column.id} column={column} onEditTask={handleEditTask} />
+            <Column
+              key={column.id}
+              column={column}
+              tasks={activeBoard.tasks.filter((t) => t.columnId === column.id)}
+              onEditTask={(t) => setEditingTask(t)}
+            />
           ))}
         </div>
         {editingTask !== undefined && (
