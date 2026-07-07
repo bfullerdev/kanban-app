@@ -1,39 +1,58 @@
 import { CheckSquare, GripVertical } from 'lucide-react';
-import { useSortable } from '@dnd-kit/react/sortable';
+import { defaultAnimateLayoutChanges, useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '../types';
 
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
-  columnIndex: number;
-  columnId: string;
+  index: number;
 }
 
-export default function TaskCard({ task, onEdit, columnIndex, columnId }: TaskCardProps) {
-  const { handleRef, ref, isDragSource } = useSortable({
+const animateWhileSorting: AnimateLayoutChanges = (args) => (
+  args.isSorting ? defaultAnimateLayoutChanges(args) : false
+);
+
+export default function TaskCard({ task, onEdit }: TaskCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: task.id,
-    index: columnIndex,
-    group: columnId,
-    disabled: { droppable: true },
+    animateLayoutChanges: animateWhileSorting,
   });
 
   const completedCount = task.subtasks.filter((s) => s.completed).length;
 
+  const style = {
+    transition: transform ? 'transform 0.3s ease' : transition,
+    transform: CSS.Translate.toString(transform),
+    transformOrigin: '0 0',
+  };
+
   return (
     <div
-      ref={ref}
-      className={`transition-all duration-200 ${
-        isDragSource ? 'opacity-30' : 'opacity-100'
-      }`}
+      ref={setNodeRef}
+      style={style}
+      data-id={task.id}
+      className={`transition-opacity duration-200 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
     >
       <button
-        onClick={() => onEdit(task)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit(task);
+        }}
         className="w-full text-left p-3 rounded-lg bg-surface border border-white/5 shadow-sm hover:border-white/10 hover:shadow-md transition-all cursor-pointer"
+        {...attributes}
+        {...listeners}
       >
         <div className="flex items-start gap-2">
           <div
             className="cursor-grab active:cursor-grabbing mt-0.5 select-none"
-            ref={handleRef}
           >
             <GripVertical className="w-4 h-4 text-white/30 hover:text-white/60" />
           </div>
