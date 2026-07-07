@@ -55,7 +55,7 @@ describe('TaskCard', () => {
     const onEdit = vi.fn();
     render(<TaskCard task={mockTask} onEdit={onEdit} index={0} />);
 
-    await user.click(screen.getByRole('button'));
+    await user.click(screen.getAllByRole('button')[0]);
     expect(onEdit).toHaveBeenCalledWith(mockTask);
   });
 

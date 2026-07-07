@@ -49,13 +49,13 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
         className="w-full text-left p-3 rounded-lg bg-surface border border-white/5 shadow-sm hover:border-white/10 hover:shadow-md transition-all cursor-pointer"
       >
         <div className="flex items-start gap-2">
-          <button
+          <div
             {...attributes}
             {...listeners}
             className="cursor-grab active:cursor-grabbing mt-0.5 select-none p-1 hover:bg-white/5 rounded"
           >
             <GripVertical className="w-4 h-4 text-white/30 hover:text-white/60" />
-          </button>
+          </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-white">{task.title}</h3>
             {task.description && (

@@ -53,7 +53,7 @@ vi.mock('@dnd-kit/core', () => ({
   closestCorners: vi.fn(),
   pointerWithin: vi.fn(() => []),
   useDroppable: mockUseDroppable,
-  DndContext: ({ children, onDragOver, onDragEnd, onDragCancel }: any) => {
+  DndContext: ({ children, onDragOver, onDragEnd, onDragCancel, sensors }: any) => {
     const triggerDragEnd = (event: any) => {
       if (onDragEnd) {
         onDragEnd(event);
@@ -79,7 +79,11 @@ vi.mock('@dnd-kit/core', () => ({
     );
   },
   useSensor: (sensor: any) => sensor,
+  useSensors: (...sensors: any[]) => sensors,
   PointerSensor: { createSensor: () => vi.fn() },
+  MouseSensor: vi.fn(),
+  TouchSensor: vi.fn(),
+  KeyboardSensor: vi.fn(),
 }));
 
 vi.mock('@dnd-kit/sortable', () => ({

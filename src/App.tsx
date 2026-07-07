@@ -5,7 +5,10 @@ import {
   DragOverlay,
   pointerWithin,
   useSensor,
-  PointerSensor,
+  useSensors,
+  MouseSensor,
+  TouchSensor,
+  KeyboardSensor,
   type CollisionDetection,
   type Over,
 } from '@dnd-kit/core';
@@ -69,10 +72,14 @@ function getDragTarget(board: Board, over: Over) {
 function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   const [editingTask, setEditingTask] = useState<Task | null | undefined>(undefined);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-  const [overlayWidth, setOverlayWidth] = useState<string | null>(null);
+  const [overlayWidth, setOverlayWidth] = useState<string | undefined>(undefined);
   const previousBoard = useRef(activeBoard);
   const clearDraggedTaskTimeout = useRef<number | null>(null);
-  const pointerSensor = useSensor(PointerSensor);
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor)
+  );
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -87,7 +94,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
   return (
     <DndContext
       collisionDetection={pointerFirstCollisionDetection}
-      sensors={[pointerSensor]}
+      sensors={sensors}
       onDragStart={({ active }) => {
         if (clearDraggedTaskTimeout.current !== null) {
           window.clearTimeout(clearDraggedTaskTimeout.current);
@@ -108,7 +115,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
         }
         updateBoard(previousBoard.current);
         setDraggedTask(null);
-        setOverlayWidth(null);
+        setOverlayWidth(undefined);
       }}
       onDragOver={({ active, over }) => {
         if (active?.id === undefined || !over) return;
@@ -125,7 +132,7 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
       onDragEnd={({ active, over }) => {
         clearDraggedTaskTimeout.current = window.setTimeout(() => {
           setDraggedTask(null);
-          setOverlayWidth(null);
+        setOverlayWidth(undefined);
           clearDraggedTaskTimeout.current = null;
         }, 250);
 
