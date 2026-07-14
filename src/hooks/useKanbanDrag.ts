@@ -82,9 +82,12 @@ export function useKanbanDrag({ activeBoard, updateBoard }: { activeBoard: Board
 
   const handleDragOver = (event: any) => {
     const { active, over } = event;
-    if (active?.id === undefined || !over) return;
+    if (active?.id === undefined || !over || !activeBoard) return;
 
-    const sourceTask = activeBoard?.tasks.find((t) => t.id === active.id as string);
+
+    const sourceTask = activeBoard?.tasks?.find((t) => t.id === active.id as string);
+
+
     const target = getDragTarget(activeBoard, over);
 
     if (!sourceTask || !target) return;
@@ -106,7 +109,9 @@ export function useKanbanDrag({ activeBoard, updateBoard }: { activeBoard: Board
       return;
     }
 
-    const sourceTask = activeBoard.tasks.find((t) => t.id === event.active.id as string);
+
+    const sourceTask = activeBoard?.tasks?.find((t) => t.id === event.active.id as string);
+
     const target = getDragTarget(activeBoard, event.over);
 
     if (!sourceTask || !target) return;

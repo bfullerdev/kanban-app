@@ -14,6 +14,7 @@ describe('App - task reordering', () => {
     render(<App />);
 
     const todoColumn = document.querySelector('[data-id="todo"]') as HTMLElement;
+    if (!todoColumn) throw new Error('Todo column not found');
     const tasks = within(todoColumn).getAllByRole('button');
     expect(tasks.length).toBeGreaterThan(0);
 
@@ -25,10 +26,12 @@ describe('App - task reordering', () => {
     });
 
     const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const board = stored.find((b: { id: string }) => b.id === 'platform-launch');
-    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
+    const board = stored.find((b: any) => b.id === 'platform-launch');
+    if (!board) throw new Error('Board not found');
+    const todoCol = board.columns.find((c: any) => c.id === 'todo');
+    if (!todoCol) throw new Error('Todo column not found');
 
-    expect(todoCol.tasks.length).toBe(tasks.length);
+    expect(board.tasks.filter((t: any) => t.columnId === todoCol.id).length).toBe(tasks.length);
   });
 
   it('reorders task to the beginning of the column', async () => {
@@ -42,16 +45,19 @@ describe('App - task reordering', () => {
     });
 
     const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const board = stored.find((b: { id: string }) => b.id === 'platform-launch');
-    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
+    const board = stored.find((b: any) => b.id === 'platform-launch');
+    if (!board) throw new Error('Board not found');
+    const todoCol = board.columns.find((c: any) => c.id === 'todo');
+    if (!todoCol) throw new Error('Todo column not found');
 
-    expect(todoCol.tasks.length).toBe(1);
+    expect(board.tasks.filter((t: any) => t.columnId === todoCol.id).length).toBe(1);
   });
 
   it('reorders task to the end of the column', async () => {
     render(<App />);
 
     const todoColumn = document.querySelector('[data-id="todo"]') as HTMLElement;
+    if (!todoColumn) throw new Error('Todo column not found');
     const tasks = within(todoColumn).getAllByRole('button');
     const taskCount = tasks.length;
 
@@ -63,10 +69,12 @@ describe('App - task reordering', () => {
     });
 
     const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const board = stored.find((b: { id: string }) => b.id === 'platform-launch');
-    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
+    const board = stored.find((b: any) => b.id === 'platform-launch');
+    if (!board) throw new Error('Board not found');
+    const todoCol = board.columns.find((c: any) => c.id === 'todo');
+    if (!todoCol) throw new Error('Todo column not found');
 
-    expect(todoCol.tasks.length).toBe(taskCount);
+    expect(board.tasks.filter((t: any) => t.columnId === todoCol.id).length).toBe(taskCount);
   });
 
   it('uses dnd-kit sortable indexes when reordering in the same column', async () => {
@@ -80,14 +88,14 @@ describe('App - task reordering', () => {
             id: 'todo',
             title: 'To Do',
             color: '#6366f1',
-            tasks: [
-              { id: 'task-1', title: 'First task', description: '', status: 'todo', subtasks: [] },
-              { id: 'task-2', title: 'Second task', description: '', status: 'todo', subtasks: [] },
-              { id: 'task-3', title: 'Third task', description: '', status: 'todo', subtasks: [] },
-            ],
           },
-          { id: 'doing', title: 'In Progress', color: '#f59e0b', tasks: [] },
-          { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
+          { id: 'doing', title: 'In Progress', color: '#f59e0b' },
+          { id: 'done', title: 'Done', color: '#10b981' },
+        ],
+        tasks: [
+          { id: 'task-1', title: 'First task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
+          { id: 'task-2', title: 'Second task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
+          { id: 'task-3', title: 'Third task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
         ],
       },
     ]));
@@ -110,19 +118,23 @@ describe('App - task reordering', () => {
     });
 
     const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const board = stored.find((b: { id: string }) => b.id === 'same-column-reorder');
-    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
+    const board = stored.find((b: any) => b.id === 'same-column-reorder');
+    if (!board) throw new Error('Board not found');
+    const todoCol = board.columns.find((c: any) => c.id === 'todo');
+    if (!todoCol) throw new Error('Todo column not found');
 
-    expect(todoCol.tasks.map((task: { id: string }) => task.id)).toEqual(['task-2', 'task-3', 'task-1']);
+    expect(board.tasks.filter((t: any) => t.columnId === todoCol.id).map((task: any) => task.id)).toEqual(['task-2', 'task-3', 'task-1']);
   });
 
   it('moves task to a different column when dragged across columns', async () => {
     render(<App />);
 
     const todoColumn = document.querySelector('[data-id="todo"]') as HTMLElement;
+    if (!todoColumn) throw new Error('Todo column not found');
     expect(within(todoColumn).getByText('Design landing page')).toBeInTheDocument();
 
     const doingColumn = document.querySelector('[data-id="doing"]') as HTMLElement;
+    if (!doingColumn) throw new Error('Doing column not found');
     expect(within(doingColumn).queryByText('Design landing page')).not.toBeInTheDocument();
 
     await act(async () => {
@@ -134,6 +146,7 @@ describe('App - task reordering', () => {
 
     const updatedDoingColumn = document.querySelector('[data-id="doing"]') as HTMLElement;
     const updatedTodoColumn = document.querySelector('[data-id="todo"]') as HTMLElement;
+    if (!updatedDoingColumn || !updatedTodoColumn) throw new Error('Columns not found');
 
     expect(within(updatedDoingColumn).getByText('Design landing page')).toBeInTheDocument();
     expect(within(updatedTodoColumn).queryByText('Design landing page')).not.toBeInTheDocument();
@@ -157,6 +170,7 @@ describe('App - task reordering', () => {
                 description: '',
                 status: 'todo',
                 subtasks: [],
+                columnId: 'todo',
               },
             ],
           },
@@ -171,11 +185,16 @@ describe('App - task reordering', () => {
                 description: '',
                 status: 'doing',
                 subtasks: [],
+                columnId: 'doing',
               },
             ],
           },
           { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
         ],
+        tasks: [
+          { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
+          { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [], columnId: 'doing' },
+        ]
       },
     ]));
 
@@ -192,18 +211,21 @@ describe('App - task reordering', () => {
     });
 
     const doingColumn = document.querySelector('[data-id="doing"]') as HTMLElement;
+    if (!doingColumn) throw new Error('Doing column not found');
     const draggedTask = within(doingColumn).getByText('Dragged task');
     const existingTask = within(doingColumn).getByText('Existing destination task');
 
     expect(draggedTask.compareDocumentPosition(existingTask) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const board = stored.find((b: { id: string }) => b.id === 'board-with-destination-tasks');
-    const doingCol = board.columns.find((c: { id: string }) => c.id === 'doing');
-    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
+    const board = stored.find((b: any) => b.id === 'board-with-destination-tasks');
+    if (!board) throw new Error('Board not found');
+    const doingCol = board.columns.find((c: any) => c.id === 'doing');
+    const todoCol = board.columns.find((c: any) => c.id === 'todo');
+    if (!doingCol || !todoCol) throw new Error('Columns not found');
 
-    expect(todoCol.tasks).toHaveLength(0);
-    expect(doingCol.tasks.map((task: { id: string }) => task.id)).toEqual(['task-1', 'task-2']);
+    expect(board.tasks.filter((t: any) => t.columnId === todoCol.id)).toHaveLength(0);
+    expect(board.tasks.filter((t: any) => t.columnId === doingCol.id).map((task: any) => task.id)).toEqual(['task-1', 'task-2']);
   });
 
   it('keeps the previewed cross-column order when the card is dropped', async () => {
@@ -218,7 +240,7 @@ describe('App - task reordering', () => {
             title: 'To Do',
             color: '#6366f1',
             tasks: [
-              { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [] },
+              { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
             ],
           },
           {
@@ -226,11 +248,15 @@ describe('App - task reordering', () => {
             title: 'In Progress',
             color: '#f59e0b',
             tasks: [
-              { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [] },
+              { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [], columnId: 'doing' },
             ],
           },
           { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
         ],
+        tasks: [
+          { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
+          { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [], columnId: 'doing' },
+        ]
       },
     ]));
 
@@ -253,12 +279,14 @@ describe('App - task reordering', () => {
     });
 
     const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const board = stored.find((b: { id: string }) => b.id === 'drop-preview-order');
-    const doingCol = board.columns.find((c: { id: string }) => c.id === 'doing');
-    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
+    const board = stored.find((b: any) => b.id === 'drop-preview-order');
+    if (!board) throw new Error('Board not found');
+    const doingCol = board.columns.find((c: any) => c.id === 'doing');
+    const todoCol = board.columns.find((c: any) => c.id === 'todo');
+    if (!doingCol || !todoCol) throw new Error('Columns not found');
 
-    expect(todoCol.tasks).toHaveLength(0);
-    expect(doingCol.tasks.map((task: { id: string }) => task.id)).toEqual(['task-1', 'task-2']);
+    expect(board.tasks.filter((t: any) => t.columnId === todoCol.id)).toHaveLength(0);
+    expect(board.tasks.filter((t: any) => t.columnId === doingCol.id).map((task: any) => task.id)).toEqual(['task-1', 'task-2']);
   });
 
   it('ignores repeated drag-over events that do not change the preview order', async () => {
@@ -273,7 +301,7 @@ describe('App - task reordering', () => {
             title: 'To Do',
             color: '#6366f1',
             tasks: [
-              { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [] },
+              { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
             ],
           },
           {
@@ -281,11 +309,15 @@ describe('App - task reordering', () => {
             title: 'In Progress',
             color: '#f59e0b',
             tasks: [
-              { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [] },
+              { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [], columnId: 'doing' },
             ],
           },
           { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
         ],
+        tasks: [
+          { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
+          { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [], columnId: 'doing' },
+        ]
       },
     ]));
 
@@ -306,6 +338,7 @@ describe('App - task reordering', () => {
     });
 
     const doingColumn = document.querySelector('[data-id="doing"]') as HTMLElement;
+    if (!doingColumn) throw new Error('Doing column not found');
 
     expect(within(doingColumn).getAllByRole('button')).toHaveLength(2);
     expect(within(doingColumn).getByText('Dragged task')).toBeInTheDocument();
@@ -324,7 +357,7 @@ describe('App - task reordering', () => {
             title: 'To Do',
             color: '#6366f1',
             tasks: [
-              { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [] },
+              { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
             ],
           },
           {
@@ -332,11 +365,15 @@ describe('App - task reordering', () => {
             title: 'In Progress',
             color: '#f59e0b',
             tasks: [
-              { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [] },
+              { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [], columnId: 'doing' },
             ],
           },
           { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
         ],
+        tasks: [
+          { id: 'task-1', title: 'Dragged task', description: '', status: 'todo', subtasks: [], columnId: 'todo' },
+          { id: 'task-2', title: 'Existing destination task', description: '', status: 'doing', subtasks: [], columnId: 'doing' },
+        ]
       },
     ]));
 
@@ -357,21 +394,25 @@ describe('App - task reordering', () => {
     });
 
     const stored = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const board = stored.find((b: { id: string }) => b.id === 'cancel-preview-order');
-    const todoCol = board.columns.find((c: { id: string }) => c.id === 'todo');
-    const doingCol = board.columns.find((c: { id: string }) => c.id === 'doing');
+    const board = stored.find((b: any) => b.id === 'cancel-preview-order');
+    if (!board) throw new Error('Board not found');
+    const todoCol = board.columns.find((c: any) => c.id === 'todo');
+    const doingCol = board.columns.find((c: any) => c.id === 'doing');
+    if (!todoCol || !doingCol) throw new Error('Columns not found');
 
-    expect(todoCol.tasks.map((task: { id: string }) => task.id)).toEqual(['task-1']);
-    expect(doingCol.tasks.map((task: { id: string }) => task.id)).toEqual(['task-2']);
+    expect(board.tasks.filter((t: any) => t.columnId === todoCol.id).map((task: any) => task.id)).toEqual(['task-1']);
+    expect(board.tasks.filter((t: any) => t.columnId === doingCol.id).map((task: any) => task.id)).toEqual(['task-2']);
   });
 
   it('does not reorder when dropping at the same position', async () => {
     render(<App />);
 
     const storedBefore = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const boardBefore = storedBefore.find((b: { id: string }) => b.id === 'platform-launch');
-    const todoColBefore = boardBefore.columns.find((c: { id: string }) => c.id === 'todo');
-    const firstTaskBefore = todoColBefore.tasks[0]?.id;
+    const boardBefore = storedBefore.find((b: any) => b.id === 'platform-launch');
+    if (!boardBefore) throw new Error('Board not found');
+    const todoColBefore = boardBefore.columns.find((c: any) => c.id === 'todo');
+    if (!todoColBefore) throw new Error('Todo column not found');
+    const firstTaskBefore = boardBefore.tasks.find((t: any) => t.columnId === todoColBefore.id)?.id;
 
     await act(async () => {
       mockCallbacks.triggerDragEnd?.({
@@ -381,9 +422,11 @@ describe('App - task reordering', () => {
     });
 
     const storedAfter = JSON.parse(localStorage.getItem('kanban-boards')!);
-    const boardAfter = storedAfter.find((b: { id: string }) => b.id === 'platform-launch');
-    const todoColAfter = boardAfter.columns.find((c: { id: string }) => c.id === 'todo');
+    const boardAfter = storedAfter.find((b: any) => b.id === 'platform-launch');
+    if (!boardAfter) throw new Error('Board not found');
+    const todoColAfter = boardAfter.columns.find((c: any) => c.id === 'todo');
+    if (!todoColAfter) throw new Error('Todo column not found');
 
-    expect(todoColAfter.tasks[0]?.id).toBe(firstTaskBefore);
+    expect(boardAfter.tasks.find((t: any) => t.columnId === todoColAfter.id)?.id).toBe(firstTaskBefore);
   });
 });

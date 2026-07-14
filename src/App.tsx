@@ -38,7 +38,7 @@ function BoardContent({ activeBoard, updateBoard }: { activeBoard: Board; update
             <Column
               key={column.id}
               column={column}
-              tasks={activeBoard.tasks.filter((t) => t.columnId === column.id)}
+                        tasks={activeBoard.tasks?.filter((t) => t.columnId === column.id) ?? []}
               onEditTask={(t) => setEditingTask(t)}
             />
           ))}

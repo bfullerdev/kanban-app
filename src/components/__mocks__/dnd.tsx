@@ -84,18 +84,35 @@ vi.mock('@dnd-kit/core', () => ({
   MouseSensor: vi.fn(),
   TouchSensor: vi.fn(),
   KeyboardSensor: vi.fn(),
+  arrayMove: (array: any[], startIndex: number, endIndex: number) => {
+    const result = [...array];
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  },
 }));
 
-vi.mock('@dnd-kit/sortable', () => ({
-  defaultAnimateLayoutChanges: vi.fn(({ isSorting }: any) => isSorting),
-  useSortable: mockUseSortable,
-  SortableContext: ({ children, items }: any) => (
-    <div data-testid="sortable-context" data-items={JSON.stringify(items)}>
-      {children}
-    </div>
-  ),
-  verticalListSortingStrategy: {},
-}));
+vi.mock('@dnd-kit/sortable', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...(actual as any),
+    defaultAnimateLayoutChanges: vi.fn(({ isSorting }: any) => isSorting),
+    useSortable: mockUseSortable,
+    SortableContext: ({ children, items }: any) => (
+      <div data-testid="sortable-context" data-items={JSON.stringify(items)}>
+        {children}
+      </div>
+    ),
+    verticalListSortingStrategy: {},
+    arrayMove: (array: any[], startIndex: number, endIndex: number) => {
+      const result = [...array];
+      const [removed] = result.splice(startIndex, 1);
+      result.splice(endIndex, 0, removed);
+      return result;
+    },
+  }
+})
+
 
 vi.mock('@dnd-kit/utilities', () => ({
   CSS: {
