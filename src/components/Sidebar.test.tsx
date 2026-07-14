@@ -21,6 +21,7 @@ describe('Sidebar', () => {
         boards={mockBoards}
         activeBoardId={null}
         onSelectBoard={() => {}}
+        onCreateBoard={() => {}}
       />
     );
 
@@ -35,6 +36,7 @@ describe('Sidebar', () => {
         boards={mockBoards}
         activeBoardId="board-2"
         onSelectBoard={() => {}}
+        onCreateBoard={() => {}}
       />
     );
 
@@ -50,6 +52,7 @@ describe('Sidebar', () => {
         boards={mockBoards}
         activeBoardId="board-1"
         onSelectBoard={onSelectBoard}
+        onCreateBoard={() => {}}
       />
     );
 
@@ -64,6 +67,7 @@ describe('Sidebar', () => {
         boards={mockBoards}
         activeBoardId={null}
         onSelectBoard={() => {}}
+        onCreateBoard={() => {}}
       />
     );
 
@@ -76,6 +80,7 @@ describe('Sidebar', () => {
         boards={mockBoards}
         activeBoardId={null}
         onSelectBoard={() => {}}
+        onCreateBoard={() => {}}
       />
     );
 
@@ -89,6 +94,7 @@ describe('Sidebar', () => {
         boards={mockBoards}
         activeBoardId={null}
         onSelectBoard={() => {}}
+        onCreateBoard={() => {}}
       />
     );
 
@@ -101,6 +107,7 @@ describe('Sidebar', () => {
         boards={mockBoards}
         activeBoardId={null}
         onSelectBoard={() => {}}
+        onCreateBoard={() => {}}
       />
     );
 

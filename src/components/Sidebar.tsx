@@ -5,9 +5,10 @@ interface SidebarProps {
   boards: Board[];
   activeBoardId: string | null;
   onSelectBoard: (boardId: string) => void;
+  onCreateBoard: () => void;
 }
 
-export default function Sidebar({ boards, activeBoardId, onSelectBoard }: SidebarProps) {
+export default function Sidebar({ boards, activeBoardId, onSelectBoard, onCreateBoard }: SidebarProps) {
   return (
     <aside className="flex flex-col w-64 h-screen bg-surface border-r border-white/5">
       <div className="flex items-center gap-2 px-4 py-6 border-b border-white/5">
@@ -37,7 +38,10 @@ export default function Sidebar({ boards, activeBoardId, onSelectBoard }: Sideba
           ))}
         </ul>
 
-        <button className="flex items-center gap-2 px-2 py-2 mt-2 rounded-lg text-sm text-primary hover:bg-white/5 transition-colors">
+        <button
+          onClick={onCreateBoard}
+          className="flex items-center gap-2 px-2 py-2 mt-2 rounded-lg text-sm text-primary hover:bg-white/5 transition-colors"
+        >
           <Plus className="w-4 h-4" />
           Create New Board
         </button>

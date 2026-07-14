@@ -14,6 +14,7 @@ import Sidebar from './components/Sidebar';
 import BoardHeader from './components/BoardHeader';
 import Column from './components/Column';
 import TaskModal from './components/TaskModal';
+import BoardModal from './components/BoardModal';
 import { useBoardData } from './hooks/useBoardData';
 import { moveTask, reorderTask } from './utils/boardUpdater';
 import type { Task, Board } from './types';
@@ -183,7 +184,8 @@ function BoardContent({ activeBoard, updateBoard }: BoardContentProps) {
 }
 
 function App() {
-  const { boards, activeBoardId, activeBoard, selectBoard, updateBoard } = useBoardData();
+  const { boards, activeBoardId, activeBoard, selectBoard, updateBoard, createBoard } = useBoardData();
+  const [showBoardModal, setShowBoardModal] = useState(false);
 
   return (
     <div className="flex bg-background min-h-screen">
@@ -191,6 +193,7 @@ function App() {
         boards={boards}
         activeBoardId={activeBoardId}
         onSelectBoard={selectBoard}
+        onCreateBoard={() => setShowBoardModal(true)}
       />
       <main className="flex-1 flex flex-col">
         {activeBoard ? (
@@ -201,6 +204,15 @@ function App() {
           </div>
         )}
       </main>
+      {showBoardModal && (
+        <BoardModal
+          onClose={() => setShowBoardModal(false)}
+          onCreate={(title) => {
+            createBoard(title);
+            setShowBoardModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

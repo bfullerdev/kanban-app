@@ -101,6 +101,26 @@ export function useBoardData() {
     setActiveBoardId(boardId);
   }, []);
 
+  const createDefaultColumns = (): Board['columns'] => [
+    { id: 'todo', title: 'To Do', color: '#6366f1', tasks: [] },
+    { id: 'doing', title: 'In Progress', color: '#f59e0b', tasks: [] },
+    { id: 'done', title: 'Done', color: '#10b981', tasks: [] },
+  ];
+
+  const createBoard = useCallback((title: string) => {
+    const newBoard: Board = {
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      columns: createDefaultColumns(),
+    };
+    setBoards((prev) => {
+      const updated = [...prev, newBoard];
+      saveBoards(updated);
+      return updated;
+    });
+    setActiveBoardId(newBoard.id);
+  }, []);
+
   const updateBoard = useCallback(
     (updateFn: Board | ((prev: Board) => Board)) => {
       setBoards((prev) => {
@@ -119,5 +139,5 @@ export function useBoardData() {
     [activeBoardId],
   );
 
-  return { boards, activeBoardId, activeBoard, selectBoard, updateBoard };
+  return { boards, activeBoardId, activeBoard, selectBoard, updateBoard, createBoard };
 }
